@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+    id: 1
+    author: inventory-data-owner
+    changes:
+    - createTable:
+      tableName: colors
+      columns:
+        - column:
+            name: color
+            type: STRING
+        - column:
+            name: category
+            type: STRING
