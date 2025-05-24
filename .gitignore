@@ -438,3 +438,4 @@ override.tf.json
 .terraformrc
 terraform.rc
 .DS_Store
+bigquery-liquibase/command.txt
