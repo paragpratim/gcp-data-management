@@ -87,6 +87,10 @@ See [`sample-data/avro/README.txt`](sample-data/avro/README.txt) for details.
 
 ---
 
+## Whats Next ?
+
+More to come on GCP Data Management and Governance.
+
 ## License
 
 See [LICENSE](LICENSE) for license information.
