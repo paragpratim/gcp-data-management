@@ -70,7 +70,9 @@ export LIQUIBASE_COMMAND_URL="jdbc:bigquery://https://googleapis.com/bigquery/v2
 
 ```sh
 cd bigquery-liquibase
+liquibase --changeLogFile=rootchangelog.yaml status
 liquibase --changeLogFile=rootchangelog.yaml update
+liquibase --tag=a_tag
 ```
 
 ---
