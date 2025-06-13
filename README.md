@@ -75,6 +75,10 @@ liquibase --changeLogFile=rootchangelog.yaml update
 liquibase --tag=a_tag
 ```
 
+### Liquibase Demo
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Zl-y9RUQ1pI/0.jpg)](https://www.youtube.com/watch?v=Zl-y9RUQ1pI)
+
 ---
 
 ## Sample Data
