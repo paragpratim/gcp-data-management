@@ -1,17 +1,9 @@
 databaseChangeLog:
 
-- changeSet:
-    id: books
-    author: inventory-data-owner
-    changes:
-    - sqlFile:
-        path: books.yaml
-        relativeToChangelogFile: true
-    - rollback:
-        - sqlFile:
-            path: books-rollback.yaml
-            relativeToChangelogFile: true
-
 - include:
     file: colors.sql
+    relativeToChangelogFile: true
+
+- include:
+    file: books.sql
     relativeToChangelogFile: true

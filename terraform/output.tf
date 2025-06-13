@@ -8,17 +8,7 @@ output "data-plane-data-raw-zone-bucket" {
     description = "The name of the data plane raw zone bucket"
 }
 
-output "data-plane-bq-dataset-user-data" {
-  value = google_bigquery_dataset.bq_dataset_user_data.dataset_id
-    description = "The name of the data plane BigQuery dataset for user data"
-}
-
-output "data-plane-bq-dataset-inventory-data" {
-  value = google_bigquery_dataset.bq_dataset_inventory_data.dataset_id
-    description = "The friendly name of the data plane BigQuery dataset for inventory data"
-}
-
-output "data-plane-bq-dataset-changelog" {
-  value = google_bigquery_dataset.bq_dataset_changelog.dataset_id
-    description = "The friendly name of the data plane BigQuery dataset for changelog"
+output "data-plane-bq-datasets" {
+  value = [for ds in google_bigquery_dataset.bq_datasets : ds.dataset_id]
+  description = "The list of BigQuery datasets created in the data plane"
 }

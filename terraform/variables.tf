@@ -12,19 +12,9 @@ variable "region" {
   type        = string
 }
 
-variable "bq_dataset_user_data" {
-  description = "The BigQuery dataset for user data."
-  type        = string
-}
-
-variable "bq_dataset_inventory_data" {
-  description = "The BigQuery dataset for inventory data."
-  type        = string
-}
-
-variable "bq_dataset_changelog" {
-  description = "The BigQuery dataset for liquibase changelog."
-  type        = string
+variable "bq_datasets" {
+  description = "The list of BigQuery datasets to create."
+  type        = list(string)
 }
 
 variable "bq_data_owner" {
