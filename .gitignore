@@ -439,3 +439,4 @@ override.tf.json
 terraform.rc
 .DS_Store
 bigquery-liquibase/command.txt
+terraform/.terraform.lock.hcl
