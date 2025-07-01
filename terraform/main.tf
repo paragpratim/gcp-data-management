@@ -1,6 +1,6 @@
-# Create GCS bucket in data plane
+# Create GCS buckets in data plane
 resource "google_storage_bucket" "bucket_landing_zone" {
-  name     = "data-landing-zone-${var.project_id_data}"
+  name     = var.landing_bucket
   location = var.region
   provider = google.data-plane
   provisioner "local-exec" {
@@ -9,14 +9,14 @@ resource "google_storage_bucket" "bucket_landing_zone" {
 }
 
 resource "google_storage_bucket" "bucket_raw_zone" {
-  name     = "data-raw-zone-${var.project_id_data}"
+  name     = var.raw_bucket
   location = var.region
   provider = google.data-plane
 }
 
+# Create BigQuery datasets in data plane
 resource "google_bigquery_dataset" "bq_datasets" {
   for_each = toset(var.bq_datasets)
-# Create BigQuery datasets in data plane
   dataset_id                  = each.value
   friendly_name               = each.value
   description                 = "${each.value} Dataset"
