@@ -1,101 +1,52 @@
-# GCP Data Management Demo
+# GCP Data Management
 
-This repository provides a sample setup for managing data infrastructure on Google Cloud Platform (GCP) using Terraform and demonstrates schema management with Liquibase for BigQuery.
+This repository demonstrates best practices and approaches for managing data and related resources on the Google Cloud Platform (GCP). It serves as a reference for provisioning, organizing, and governing data and infrastructure using modular, extensible tools and workflows. The goal is to showcase how to efficiently manage data assets, automate resource provisioning, and enable scalable data operations on GCP.
 
-## Contents
+## Features
 
-- **Terraform scripts** for provisioning:
-  - Google Cloud Storage (GCS) buckets
-  - BigQuery datasets for user and inventory data
-- **Sample data** in Avro, JSON, and Parquet formats
-- **Liquibase scripts** for managing BigQuery schema changes
+- **Extensible Architecture**: Designed to support additional data management and governance features in the future.
+- **Infrastructure as Code with Terraform**: Provision and manage GCP resources such as Google Cloud Storage (GCS) buckets and BigQuery datasets using Terraform scripts. (See [`terraform/README.md`](terraform/README.md) for setup and usage.)
+- **Schema Management with Liquibase**: Integrate Liquibase for version-controlled schema changes in BigQuery. (See [`bigquery-liquibase/README.md`](bigquery-liquibase/README.md) for details.)
 
 ---
 
-## Prerequisites
+## Getting Started
 
-- [Terraform](https://www.terraform.io/downloads.html) installed
-- [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) installed and authenticated
-- [Liquibase](https://www.liquibase.org/download) installed
-- Two GCP projects created:
-  - One for the data plane
-  - One for the compute plane
-- Service account(s) with permissions to create GCS buckets and BigQuery datasets
+Before using this repository, complete the following steps:
 
----
+1. **Install the Google Cloud CLI (gcloud):**
+   - Follow the instructions at [Install Google Cloud CLI](https://cloud.google.com/sdk/docs/install).
 
-## Setup
+2. **Install Terraform:**
+   - Download and install from the [Terraform website](https://www.terraform.io/downloads.html).
 
-### 1. Configure Terraform Variables
+3. **Create Two GCP Projects:**
+   - One project to host data resources.
+   - One project to host compute resources.
+   - This separation helps isolate resources and improve security/governance.
 
-Edit [`terraform/terraform.tfvars`](terraform/terraform.tfvars) and provide values for:
+4. **Create Service Account(s):**
+   - Create service account(s) with permissions to create and manage resources in both GCP projects.
+   - Assign appropriate IAM roles.
 
-- `project_id_data` (GCP project for data plane)
-- `project_id_compute` (GCP project for compute plane)
-- `region` (GCP region)
-- `bq_dataset_user_data`, `bq_dataset_inventory_data`, `bq_dataset_changelog` (BigQuery dataset names)
-- `bq_data_owner` (email of dataset owner)
+See the individual feature folders for setup and usage instructions:
 
-See [`terraform/variables.tf`](terraform/variables.tf) for all variables.
-
-### 2. Initialize and Apply Terraform
-
-```sh
-cd terraform
-terraform init
-terraform apply
-```
-
-This will create the required GCS buckets and BigQuery datasets. Sample data from [`sample-data/`](sample-data/) will be uploaded to the landing zone bucket.
-
----
-
-## Liquibase with BigQuery
-
-Liquibase scripts are provided in [`bigquery-liquibase/`](bigquery-liquibase/). These demonstrate schema management for BigQuery.
-
-### Environment Setup
-
-Set the following environment variable before running Liquibase:
-
-```sh
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"
-export LIQUIBASE_COMMAND_URL="jdbc:bigquery://https://googleapis.com/bigquery/v2:443;ProjectId=<your GCP Project ID>;OAuthType=3;DefaultDataset=<changelog dataset>;"
-```
-
-### Running Liquibase
-
-1. Edit [`bigquery-liquibase/liquibase.properties`](bigquery-liquibase/liquibase.properties) to match your BigQuery connection details.
-2. Run Liquibase commands, for example:
-
-```sh
-cd bigquery-liquibase
-liquibase --changeLogFile=rootchangelog.yaml status
-liquibase --changeLogFile=rootchangelog.yaml update
-liquibase --tag=a_tag
-```
-
-### Liquibase Live Demo
-
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Zl-y9RUQ1pI/0.jpg)](https://www.youtube.com/watch?v=Zl-y9RUQ1pI "Liquibase with Bigquery")
+- [Terraform Setup](terraform/README.md)
+- [Liquibase Integration](bigquery-liquibase/README.md)
 
 ---
 
 ## Sample Data
 
-Sample data files are provided in [`sample-data/`](sample-data/):
-
-- [`sample-data/avro/`](sample-data/avro/): Avro files and schema
-- [`sample-data/json/`](sample-data/json/): JSON files
-- [`sample-data/parquet/`](sample-data/parquet/): Parquet files
-
-See [`sample-data/avro/README.txt`](sample-data/avro/README.txt) for details.
-
+Sample data files are provided in `sample-data/`:
+- `sample-data/avro/`: Avro files and schema
+- `sample-data/json/`: JSON files
+- `sample-data/parquet/`: Parquet files
 ---
 
-## Whats Next ?
+## Roadmap
 
-More to come on GCP Data Management and Governance.
+- Additional data management and governance features will be added in future releases.
 
 ## License
 
