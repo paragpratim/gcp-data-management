@@ -47,3 +47,8 @@ variable "ingestion_pubsub_subscription" {
   type        = string
 }
 
+variable "dataflow_backend_bucket_name" {
+  description = "The name of the GCS bucket to be used as the Dataflow backend in the compute plane project."
+  type        = string
+}
+

@@ -41,6 +41,11 @@ This document provides instructions for provisioning GCP resources using Terrafo
 ### IAM Roles and Permissions
 - Grants required permissions for service accounts
 - Allows the GCS service agent from the data-plane project to publish messages to the Pub/Sub topic in the compute-plane project
+
+### Dataflow Backend Infrastructure
+- Service account in the compute plane project for running Dataflow jobs
+- IAM roles assigned to the Dataflow runner service account: Dataflow Worker, Storage Object Admin, BigQuery User, and Logging Log Writer
+- Storage bucket in the compute plane project to be used as the Dataflow backend (bucket name is configurable via the `dataflow_backend_bucket_name` variable)
 ---
 
 For more details on the overall project, see the main [README](../README.md).

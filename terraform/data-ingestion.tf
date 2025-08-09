@@ -35,5 +35,36 @@ resource "google_storage_notification" "landing_bucket_to_pubsub" {
   depends_on = [ google_pubsub_topic_iam_member.allow_gcs_sa_publish ] # Ensure the IAM binding is created before the notification
 }
 
+# Service account for running Dataflow jobs in the compute plane project
+resource "google_service_account" "dataflow_runner" {
+  account_id   = "dataflow-runner"
+  display_name = "Dataflow Runner Service Account"
+  description  = "Service account for running Dataflow jobs on the compute plane project."
+  provider = google.compute-plane
+}
+
+# Combined IAM roles for Dataflow runner service account
+resource "google_project_iam_member" "dataflow_runner_combined" {
+  for_each = toset([
+    "roles/dataflow.worker",
+    "roles/storage.objectAdmin",
+    "roles/bigquery.user",
+    "roles/logging.logWriter"
+  ])
+  project = var.project_id_compute
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.dataflow_runner.email}"
+  provider = google.compute-plane
+}
+
+# Storage bucket in the compute plane project for Dataflow backend
+resource "google_storage_bucket" "dataflow_backend" {
+  name     = var.dataflow_backend_bucket_name
+  location = var.region
+  force_destroy = true
+  uniform_bucket_level_access = true
+  provider = google.compute-plane
+}
+
 
 
