@@ -440,3 +440,16 @@ terraform.rc
 .DS_Store
 bigquery-liquibase/command.txt
 terraform/.terraform.lock.hcl
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+out/
+
+# Maven and Java build artifacts
+/target/
+*.class
+*.jar
+*.war
+*.ear
+
