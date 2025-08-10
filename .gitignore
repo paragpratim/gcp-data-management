@@ -447,9 +447,8 @@ terraform/.terraform.lock.hcl
 out/
 
 # Maven and Java build artifacts
-/target/
+**/target/
 *.class
 *.jar
 *.war
 *.ear
-
