@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'org.fusadora.contract-app' is invalid and this project uses 'org.fusadora.contract_app' instead.
+* The original package name 'org.fusadora.contract-app' is invalid and this project uses 'org.fusadora.contract' instead.
 
 # Getting Started
 

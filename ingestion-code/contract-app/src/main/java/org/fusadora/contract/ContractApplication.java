@@ -1,13 +1,13 @@
-package org.fusadora.contract_app;
+package org.fusadora.contract;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ContractAppApplication {
+public class ContractApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ContractAppApplication.class, args);
+		SpringApplication.run(ContractApplication.class, args);
 	}
 
 }
