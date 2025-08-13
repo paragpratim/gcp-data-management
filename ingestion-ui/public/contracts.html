@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Contracts</title>
+  <script src="config.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+</head>
+<body>
+  <div class="container ui-widget ui-corner-all">
+    <div class="logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/5968/5968705.png" alt="Logo">
+    </div>
+    <h1>Existing Contracts</h1>
+    <div class="form-group">
+      <label for="contractIdSelect">Select Contract ID:</label>
+      <select id="contractIdSelect"></select>
+      <button id="loadContractBtn">Load Contract</button>
+    </div>
+    <form id="editContractForm" style="display:none;">
+      <h3>Edit Contract</h3>
+      <!-- Same fields as your contract form, but with IDs prefixed by 'edit_' -->
+      <div class="form-group">
+        <label for="edit_contract_name">Contract Name</label>
+        <input type="text" id="edit_contract_name" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_version">Version</label>
+        <input type="text" id="edit_version" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_owner">Owner</label>
+        <input type="text" id="edit_owner" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_description">Description</label>
+        <input type="text" id="edit_description" required>
+      </div>
+      <h3>Source</h3>
+      <div class="form-group">
+        <label for="edit_source_project">Source Project</label>
+        <input type="text" id="edit_source_project" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_source_bucket">Source Bucket</label>
+        <input type="text" id="edit_source_bucket" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_file_name_pattern">File Name Pattern</label>
+        <input type="text" id="edit_file_name_pattern" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_file_location_folder">File Location Folder</label>
+        <input type="text" id="edit_file_location_folder" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_file_format">File Format</label>
+        <input type="text" id="edit_file_format" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_file_frequency">File Frequency</label>
+        <input type="text" id="edit_file_frequency" required>
+      </div>
+      <h3>Target</h3>
+      <div class="form-group">
+        <label for="edit_target_project">Target Project</label>
+        <input type="text" id="edit_target_project" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_bigquery_dataset">BigQuery Dataset</label>
+        <input type="text" id="edit_bigquery_dataset" required>
+      </div>
+      <div class="form-group">
+        <label for="edit_bigquery_table">BigQuery Table</label>
+        <input type="text" id="edit_bigquery_table" required>
+      </div>
+      <button id="saveContractBtn" type="submit">Save Changes</button>
+    </form>
+    <pre id="editResult"></pre>
+  </div>
+  <script>
+    $(function() {
+      $("#saveContractBtn").button();
+      $("#loadContractBtn").button();
+
+      // Load all contract IDs
+      $.get(window.API_CONFIG.BASE_URL + "/api/contracts/all-ids", function(ids) {
+        $("#contractIdSelect").empty();
+        ids.forEach(function(id) {
+          $("#contractIdSelect").append($("<option>").val(id).text(id));
+        });
+      });
+
+      // Load contract details
+      $("#loadContractBtn").on("click", function() {
+        const contractId = $("#contractIdSelect").val();
+        if (!contractId) return;
+        $.get(window.API_CONFIG.BASE_URL + "/api/contracts/get/" + contractId, function(contract) {
+          $("#editContractForm").show();
+          $("#edit_contract_name").val(contract.contract_name);
+          $("#edit_version").val(contract.version);
+          $("#edit_owner").val(contract.owner);
+          $("#edit_description").val(contract.description);
+          $("#edit_source_project").val(contract.source.project);
+          $("#edit_source_bucket").val(contract.source.bucket);
+          $("#edit_file_name_pattern").val(contract.source.file_name_pattern);
+          $("#edit_file_location_folder").val(contract.source.file_location_folder);
+          $("#edit_file_format").val(contract.source.file_format);
+          $("#edit_file_frequency").val(contract.source.file_frequency);
+          $("#edit_target_project").val(contract.target.project);
+          $("#edit_bigquery_dataset").val(contract.target.bigquery_dataset);
+          $("#edit_bigquery_table").val(contract.target.bigquery_table);
+          $("#editContractForm").data("contractId", contractId);
+        });
+      });
+
+      // Save contract changes
+      $("#editContractForm").on("submit", function(e) {
+        e.preventDefault();
+        const contractId = $(this).data("contractId");
+        const body = {
+          contract_id: contractId,
+          contract_name: $("#edit_contract_name").val(),
+          version: $("#edit_version").val(),
+          owner: $("#edit_owner").val(),
+          description: $("#edit_description").val(),
+          source: {
+            project: $("#edit_source_project").val(),
+            bucket: $("#edit_source_bucket").val(),
+            file_name_pattern: $("#edit_file_name_pattern").val(),
+            file_location_folder: $("#edit_file_location_folder").val(),
+            file_format: $("#edit_file_format").val(),
+            file_frequency: $("#edit_file_frequency").val()
+          },
+          target: {
+            project: $("#edit_target_project").val(),
+            bigquery_dataset: $("#edit_bigquery_dataset").val(),
+            bigquery_table: $("#edit_bigquery_table").val()
+          }
+        };
+        $.ajax({
+          url: window.API_CONFIG.BASE_URL + "/api/contracts/update",
+          type: "PUT",
+          contentType: "application/json",
+          data: JSON.stringify(body),
+          success: function(data) {
+            $("#editResult").text("Saved!\n" + JSON.stringify(data, null, 2));
+          },
+          error: function(err) {
+            $("#editResult").text("Error: " + err.responseText);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
