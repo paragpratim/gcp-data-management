@@ -1,0 +1,91 @@
+body {
+  background: linear-gradient(135deg, #e0f7fa 0%, #b3e5fc 100%);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  padding: 32px 24px;
+}
+h1 {
+  color: #0288d1;
+  text-align: center;
+  margin-bottom: 8px;
+  font-size: 2rem;
+  font-weight: 600;
+}
+.logo {
+  display: block;
+  margin: 0 auto 16px auto;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #b3e5fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logo img {
+  width: 60px;
+  height: 60px;
+}
+form h3 {
+  color: #039be5;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+  font-family: inherit;
+  font-size: 1rem;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+label {
+  display: block;
+  margin-bottom: 4px;
+  color: #0288d1;
+  font-weight: 500;
+}
+input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #b3e5fc;
+  border-radius: 6px;
+  background: #e3f2fd;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+input[type="text"]:focus, input[type="number"]:focus {
+  border-color: #0288d1;
+  outline: none;
+}
+button, .ui-button {
+  background: #0288d1 !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 6px !important;
+  font-size: 1rem !important;
+  cursor: pointer !important;
+  margin-top: 12px !important;
+  transition: background 0.2s !important;
+}
+button:hover, .ui-button:hover {
+  background: #039be5 !important;
+}
+pre#result {
+  background: #e3f2fd;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 24px;
+  font-size: 0.95rem;
+  color: #263238;
+  overflow-x: auto;
+}
