@@ -11,12 +11,13 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
+    <groupId>org.fusadora</groupId>
     <artifactId>contract-app</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>contract-app</name>
     <description>Java Spring boot application for storing and retrieving Data Ingestion Contract</description>
 
-    <url/>
+    <!-- <url/>
     <licenses>
         <license/>
     </licenses>
@@ -28,7 +29,7 @@
         <developerConnection/>
         <tag/>
         <url/>
-    </scm>
+    </scm> -->
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -40,13 +41,14 @@
         <dependency>
             <groupId>org.fusadora</groupId>
             <artifactId>common-model</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -57,11 +59,19 @@
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

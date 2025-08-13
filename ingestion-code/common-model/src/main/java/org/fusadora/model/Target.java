@@ -1,18 +1,46 @@
 package org.fusadora.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 
-public class Target {
+import java.io.Serial;
+import java.io.Serializable;
+
+@Entity
+@Table(name = "ingestion_target")
+public class Target implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("target_id")
+    @Column(name = "target_id", nullable = false, unique = true)
+    private Long targetId;
+
+    @Column(name = "project", nullable = false)
     @JsonProperty("project")
     private String project;
 
+    @Column(name = "bigquery_dataset", nullable = false)
     @JsonProperty("bigquery_dataset")
     private String bigqueryDataset;
 
+    @Column(name = "bigquery_table", nullable = false)
     @JsonProperty("bigquery_table")
     private String bigqueryTable;
 
     // Getters and setters
+
+    public Long getTargetId() {
+        return targetId;
+    }
+
+    public void setTargetId(Long targetId) {
+        this.targetId = targetId;
+    }
+
     public String getProject() {
         return project;
     }

@@ -1,28 +1,59 @@
 package org.fusadora.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
 
-public class Source {
+import java.io.Serial;
+import java.io.Serializable;
 
+@Entity
+@Table(name = "ingestion_source")
+public class Source implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "source_id", nullable = false, unique = true)
+    @JsonProperty("source_id")
+    private Long sourceId;
+
+    @Column(name = "project")
     @JsonProperty("project")
     private String project;
 
+    @Column(name = "bucket")
     @JsonProperty("bucket")
     private String bucket;
 
+    @Column(name = "file_name_pattern")
     @JsonProperty("file_name_pattern")
     private String fileNamePattern;
 
+    @Column(name = "file_location_folder")
     @JsonProperty("file_location_folder")
     private String fileLocationFolder;
 
+    @Column(name = "file_format")
     @JsonProperty("file_format")
     private String fileFormat;
 
+    @Column(name = "file_frequency")
     @JsonProperty("file_frequency")
     private String fileFrequency;
 
     // Getters and setters
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+
     public String getProject() {
         return project;
     }

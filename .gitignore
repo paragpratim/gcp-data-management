@@ -452,3 +452,4 @@ out/
 *.jar
 *.war
 *.ear
+ingestion-code/.mvn/*
