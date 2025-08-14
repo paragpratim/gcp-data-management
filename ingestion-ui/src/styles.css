@@ -4,14 +4,16 @@ body {
   margin: 0;
   padding: 0;
 }
+
 .container {
-  max-width: 600px;
+  max-width: 650px;
   margin: 40px auto;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   padding: 32px 24px;
 }
+
 h1 {
   color: #0288d1;
   text-align: center;
@@ -19,41 +21,65 @@ h1 {
   font-size: 2rem;
   font-weight: 600;
 }
+
 .logo {
   display: block;
   margin: 0 auto 16px auto;
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   background: #b3e5fc;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .logo img {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
 }
+
+nav {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  background: #0288d1;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  display: inline-block;
+  transition: background 0.2s;
+}
+
+nav a:hover {
+  background: #039be5;
+}
+
 form h3 {
   color: #039be5;
   margin-top: 24px;
   margin-bottom: 8px;
   font-size: 1.1rem;
 }
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
-  font-family: inherit;
-  font-size: 1rem;
-}
+
 .form-group {
   margin-bottom: 16px;
 }
+
 label {
   display: block;
   margin-bottom: 4px;
   color: #0288d1;
   font-weight: 500;
 }
-input[type="text"], input[type="number"] {
+
+input[type="text"], input[type="number"], select {
   width: 100%;
   padding: 10px;
   border: 1px solid #b3e5fc;
@@ -61,26 +87,32 @@ input[type="text"], input[type="number"] {
   background: #e3f2fd;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  margin-bottom: 12px;
+  font-size: 1rem;
 }
-input[type="text"]:focus, input[type="number"]:focus {
+
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
   border-color: #0288d1;
   outline: none;
 }
-button, .ui-button {
-  background: #0288d1 !important;
-  color: #fff !important;
-  border: none !important;
-  padding: 12px 24px !important;
-  border-radius: 6px !important;
-  font-size: 1rem !important;
-  cursor: pointer !important;
-  margin-top: 12px !important;
-  transition: background 0.2s !important;
+
+button {
+  background: #0288d1;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.2s;
 }
-button:hover, .ui-button:hover {
-  background: #039be5 !important;
+
+button:hover {
+  background: #039be5;
 }
-pre#result {
+
+pre {
   background: #e3f2fd;
   border-radius: 6px;
   padding: 16px;
@@ -88,4 +120,19 @@ pre#result {
   font-size: 0.95rem;
   color: #263238;
   overflow-x: auto;
+}
+
+@media (max-width: 700px) {
+  .container {
+    max-width: 98vw;
+    padding: 16px 4vw;
+  }
+  .logo {
+    width: 70px;
+    height: 70px;
+  }
+  .logo img {
+    width: 50px;
+    height: 50px;
+  }
 }
