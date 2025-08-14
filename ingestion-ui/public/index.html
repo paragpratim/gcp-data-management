@@ -1,132 +1,14 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>Ingestion Contract UI</title>
-  <script src="config.js"></script>
-  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-</head>
-<body>
-  <div class="container ui-widget ui-corner-all">
-    <div class="logo">
-      <img src="https://cdn-icons-png.flaticon.com/512/5968/5968705.png" alt="Logo">
-    </div>
-    <h1>Ingestion Contract Manager</h1>
-    <nav style="margin-bottom:32px;">
-      <a href="index.html" class="ui-button ui-widget ui-corner-all">Create Contract</a>
-      <a href="view.html" class="ui-button ui-widget ui-corner-all">View Contract</a>
-      <a href="update.html" class="ui-button ui-widget ui-corner-all">Update Contract</a>
-    </nav>
-    <form id="contractForm">
-      <h3>Contract Info</h3>
-      <div class="form-group">
-        <label for="contract_name">Contract Name</label>
-        <input type="text" id="contract_name" required>
-      </div>
-      <div class="form-group">
-        <label for="version">Version</label>
-        <input type="text" id="version" required>
-      </div>
-      <div class="form-group">
-        <label for="owner">Owner</label>
-        <input type="text" id="owner" required>
-      </div>
-      <div class="form-group">
-        <label for="description">Description</label>
-        <input type="text" id="description" required>
-      </div>
-      <h3>Source</h3>
-      <div class="form-group">
-        <label for="source_project">Source Project</label>
-        <input type="text" id="source_project" required>
-      </div>
-      <div class="form-group">
-        <label for="source_bucket">Source Bucket</label>
-        <input type="text" id="source_bucket" required>
-      </div>
-      <div class="form-group">
-        <label for="file_name_pattern">File Name Pattern</label>
-        <input type="text" id="file_name_pattern" required>
-      </div>
-      <div class="form-group">
-        <label for="file_location_folder">File Location Folder</label>
-        <input type="text" id="file_location_folder" required>
-      </div>
-      <div class="form-group">
-        <label for="file_format">File Format</label>
-        <input type="text" id="file_format" required>
-      </div>
-      <div class="form-group">
-        <label for="file_frequency">File Frequency</label>
-        <input type="text" id="file_frequency" required>
-      </div>
-      <h3>Target</h3>
-      <div class="form-group">
-        <label for="target_project">Target Project</label>
-        <input type="text" id="target_project" required>
-      </div>
-      <div class="form-group">
-        <label for="bigquery_dataset">BigQuery Dataset</label>
-        <input type="text" id="bigquery_dataset" required>
-      </div>
-      <div class="form-group">
-        <label for="bigquery_table">BigQuery Table</label>
-        <input type="text" id="bigquery_table" required>
-      </div>
-      <button id="submitBtn" type="submit">Submit Contract</button>
-    </form>
-    <pre id="result"></pre>
-  </div>
-  <script>
-    $(function() {
-      $("#submitBtn").button();
-
-      $("#contractForm").on("submit", async function(e) {
-        e.preventDefault();
-
-        const body = {
-          contract_name: $("#contract_name").val(),
-          version: $("#version").val(),
-          owner: $("#owner").val(),
-          description: $("#description").val(),
-          source: {
-            project: $("#source_project").val(),
-            bucket: $("#source_bucket").val(),
-            file_name_pattern: $("#file_name_pattern").val(),
-            file_location_folder: $("#file_location_folder").val(),
-            file_format: $("#file_format").val(),
-            file_frequency: $("#file_frequency").val()
-          },
-          target: {
-            project: $("#target_project").val(),
-            bigquery_dataset: $("#bigquery_dataset").val(),
-            bigquery_table: $("#bigquery_table").val()
-          }
-        };
-
-        const apiUrl = window.API_CONFIG.BASE_URL + '/api/contracts/save';
-
-        try {
-          const res = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          });
-          const text = await res.text();
-          let data;
-          try {
-            data = JSON.parse(text);
-            $("#result").text(JSON.stringify(data, null, 2));
-          } catch {
-            $("#result").text(text);
-          }
-        } catch (err) {
-          $("#result").text("Error: " + err);
-        }
-      });
-    });
-  </script>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0288d1" />
+    <title>Fusadora</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
 </html>
