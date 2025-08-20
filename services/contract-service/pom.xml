@@ -12,7 +12,7 @@
     </parent>
 
     <groupId>org.fusadora</groupId>
-    <artifactId>contract-app</artifactId>
+    <artifactId>contract-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>contract-app</name>
     <description>Java Spring boot application for storing and retrieving Data Ingestion Contract</description>
