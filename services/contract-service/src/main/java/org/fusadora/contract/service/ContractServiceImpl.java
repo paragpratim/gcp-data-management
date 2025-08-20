@@ -1,7 +1,7 @@
 package org.fusadora.contract.service;
 
 import org.fusadora.contract.repository.ContractRepository;
-import org.fusadora.model.IngestionContract;
+import org.fusadora.model.datacontract.DataContract;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class ContractServiceImpl implements ContractService {
     private ContractRepository contractRepository;
 
     @Override
-    public void saveContract(IngestionContract contract) {
+    public void saveContract(DataContract contract) {
         if (contract == null) {
             throw new IllegalArgumentException("Contract cannot be null");
         }
@@ -22,7 +22,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public IngestionContract getContract(String contractId) {
+    public DataContract getContract(String contractId) {
         try {
             Long id = Long.parseLong(contractId);
             return contractRepository.findById(id)
@@ -46,7 +46,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public void updateContract(IngestionContract contract) {
+    public void updateContract(DataContract contract) {
         if (!contractRepository.existsById(contract.getContractId())) {
             throw new IllegalArgumentException("Contract not found with id: " + contract.getContractId());
         }
@@ -64,11 +64,11 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
-    public void validateContract(IngestionContract contract) {
+    public void validateContract(DataContract contract) {
         if (contract == null) {
             throw new IllegalArgumentException("Contract cannot be null");
         }
-        if (contract.getContractName() == null || contract.getContractName().isEmpty()) {
+        if (contract.getDataProductName() == null || contract.getDataProductName().isEmpty()) {
             throw new IllegalArgumentException("Contract name cannot be null or empty");
         }
     }
@@ -76,12 +76,12 @@ public class ContractServiceImpl implements ContractService {
     @Override
     public List<Long> getAllContractIds() {
         return contractRepository.findAll().stream()
-                .map(IngestionContract::getContractId)
+                .map(DataContract::getContractId)
                 .toList();
     }
 
     @Override
-    public List<IngestionContract> getAllContracts() {
+    public List<DataContract> getAllContracts() {
         return contractRepository.findAll();
     }
 }

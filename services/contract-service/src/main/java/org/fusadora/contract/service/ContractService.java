@@ -1,17 +1,17 @@
 package org.fusadora.contract.service;
 
-import org.fusadora.model.IngestionContract;
+import org.fusadora.model.datacontract.DataContract;
 
 import java.util.List;
 
 public interface ContractService {
 
-    public void saveContract(IngestionContract contract);
-    public IngestionContract getContract(String contractId);
+    public void saveContract(DataContract contract);
+    public DataContract getContract(String contractId);
     public void deleteContract(String contractId);
-    public void updateContract(IngestionContract contract);
+    public void updateContract(DataContract contract);
     public boolean contractExists(String contractId);
-    public void validateContract(IngestionContract contract);
+    public void validateContract(DataContract contract);
     public List<Long> getAllContractIds();
-    public List<IngestionContract> getAllContracts();
+    public List<DataContract> getAllContracts();
 }

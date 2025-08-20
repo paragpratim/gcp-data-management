@@ -1,7 +1,7 @@
 package org.fusadora.contract.controller;
 
 import org.fusadora.contract.service.ContractService;
-import org.fusadora.model.IngestionContract;
+import org.fusadora.model.datacontract.DataContract;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +19,7 @@ public class ContractController {
     private ContractService contractService;
 
     @PostMapping("/save")
-    public String saveContract(@RequestBody IngestionContract contract) {
+    public String saveContract(@RequestBody DataContract contract) {
         try {
             contractService.saveContract(contract);
             return "Contract saved successfully";
@@ -30,7 +30,7 @@ public class ContractController {
     }
 
     @GetMapping("/get/{contractId}")
-    public IngestionContract getContract(@PathVariable String contractId) {
+    public DataContract getContract(@PathVariable String contractId) {
         return contractService.getContract(contractId);
     }
 
@@ -46,7 +46,7 @@ public class ContractController {
     }
 
     @PutMapping("/update")
-    public String updateContract(@RequestBody IngestionContract contract) {
+    public String updateContract(@RequestBody DataContract contract) {
         try {
             contractService.updateContract(contract);
             return "Contract updated successfully";
@@ -67,12 +67,12 @@ public class ContractController {
     }
 
     @GetMapping("/all")
-    public List<IngestionContract> getAllContracts() {
+    public List<DataContract> getAllContracts() {
         return contractService.getAllContracts();
     }
 
     @PostMapping("/validate")
-    public String validateContract(@RequestBody IngestionContract contract) {
+    public String validateContract(@RequestBody DataContract contract) {
         try {
             contractService.validateContract(contract);
             return "Contract is valid";
