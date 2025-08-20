@@ -12,7 +12,7 @@ function App() {
         <div className="logo">
           <img src="https://cdn-icons-png.flaticon.com/512/5968/5968705.png" alt="Logo" />
         </div>
-        <h1>Ingestion Contract Manager</h1>
+        <h1>Data Contract Manager</h1>
         <nav style={{ marginBottom: "32px" }}>
           <Link to="/" className="ui-button ui-widget ui-corner-all">Create Contract</Link>
           <Link to="/view" className="ui-button ui-widget ui-corner-all">View Contract</Link>
