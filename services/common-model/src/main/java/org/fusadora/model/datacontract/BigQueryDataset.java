@@ -4,9 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.cloud.spring.data.datastore.core.mapping.Entity;
 import com.google.cloud.spring.data.datastore.core.mapping.Field;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 
 @Entity(name = "bigquery_dataset")
-public class BigQueryDataset {
+public class BigQueryDataset implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @JsonProperty("project_id")
     @Field(name = "project_id")

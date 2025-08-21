@@ -15,7 +15,7 @@ public class PhysicalField implements Serializable {
 
     @JsonProperty("nested_fields")
     @Field(name = "nested_fields")
-    List<PhysicalField> nestedFields;
+    private List<PhysicalField> nestedFields;
 
     @JsonProperty("field_name")
     @Field(name = "field_name")
@@ -28,26 +28,6 @@ public class PhysicalField implements Serializable {
     @JsonProperty("field_description")
     @Field(name = "field_description")
     private String description;
-
-    @JsonProperty("is_primary_key")
-    @Field(name = "is_primary_key")
-    private boolean isPrimaryKey;
-
-    @JsonProperty("is_foreign_key")
-    @Field(name = "is_foreign_key")
-    private boolean isForeignKey;
-
-    @JsonProperty("foreign_key_table")
-    @Field(name = "foreign_key_table")
-    private String foreignKeyTable;
-
-    @JsonProperty("foreign_key_field")
-    @Field(name = "foreign_key_field")
-    private String foreignKeyField;
-
-    @JsonProperty("constraints")
-    @Field(name = "constraints")
-    private String constraints;
 
     public String getName() {
         return name;
@@ -71,46 +51,6 @@ public class PhysicalField implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public boolean isPrimaryKey() {
-        return isPrimaryKey;
-    }
-
-    public void setPrimaryKey(boolean primaryKey) {
-        isPrimaryKey = primaryKey;
-    }
-
-    public boolean isForeignKey() {
-        return isForeignKey;
-    }
-
-    public void setForeignKey(boolean foreignKey) {
-        isForeignKey = foreignKey;
-    }
-
-    public String getForeignKeyTable() {
-        return foreignKeyTable;
-    }
-
-    public void setForeignKeyTable(String foreignKeyTable) {
-        this.foreignKeyTable = foreignKeyTable;
-    }
-
-    public String getForeignKeyField() {
-        return foreignKeyField;
-    }
-
-    public void setForeignKeyField(String foreignKeyField) {
-        this.foreignKeyField = foreignKeyField;
-    }
-
-    public String getConstraints() {
-        return constraints;
-    }
-
-    public void setConstraints(String constraints) {
-        this.constraints = constraints;
     }
 
     public List<PhysicalField> getNestedFields() {
