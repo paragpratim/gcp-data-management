@@ -6,19 +6,16 @@ body {
 }
 
 .container {
-  max-width: 650px;
+  max-width: 800px;
   margin: 40px auto;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  padding: 32px 24px;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  padding: 40px 32px;
 }
 
-h1 {
-  color: #0288d1;
-  text-align: center;
-  margin-bottom: 8px;
-  font-size: 2rem;
+h1, h3, h4 {
+  color: #1976d2;
   font-weight: 600;
 }
 
@@ -61,11 +58,16 @@ nav a:hover {
   background: #039be5;
 }
 
-form h3 {
-  color: #039be5;
-  margin-top: 24px;
-  margin-bottom: 8px;
-  font-size: 1.1rem;
+form {
+  margin-top: 16px;
+}
+
+.form-section {
+  background: #f5faff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
+  padding: 24px;
+  margin-bottom: 24px;
 }
 
 .form-group {
@@ -73,53 +75,68 @@ form h3 {
 }
 
 label {
-  display: block;
-  margin-bottom: 4px;
-  color: #0288d1;
   font-weight: 500;
+  color: #1976d2;
+  margin-bottom: 4px;
+  display: block;
 }
 
 input[type="text"], input[type="number"], select {
   width: 100%;
   padding: 10px;
-  border: 1px solid #b3e5fc;
+  border: 1px solid #90caf9;
   border-radius: 6px;
   background: #e3f2fd;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-size: 1rem;
+  transition: border-color 0.2s;
 }
 
 input[type="text"]:focus, input[type="number"]:focus, select:focus {
-  border-color: #0288d1;
+  border-color: #1976d2;
   outline: none;
 }
 
 button {
-  background: #0288d1;
+  background: #1976d2;
   color: #fff;
   border: none;
   padding: 12px 24px;
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-  margin-top: 12px;
+  margin: 8px 8px 8px 0;
   transition: background 0.2s;
 }
 
 button:hover {
-  background: #039be5;
+  background: #1565c0;
 }
 
 pre {
   background: #e3f2fd;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 16px;
   margin-top: 24px;
   font-size: 0.95rem;
   color: #263238;
   overflow-x: auto;
+}
+
+.alert-success {
+  background: #e8f5e9;
+  color: #388e3c;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.alert-error {
+  background: #ffebee;
+  color: #d32f2f;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
 }
 
 @media (max-width: 700px) {
