@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 @Service
 public class ContractServiceImpl implements ContractService {
@@ -75,13 +76,14 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     public List<Long> getAllContractIds() {
-        return contractRepository.findAll().stream()
+        return StreamSupport.stream(contractRepository.findAll().spliterator(), false)
                 .map(DataContract::getContractId)
                 .toList();
     }
 
     @Override
     public List<DataContract> getAllContracts() {
-        return contractRepository.findAll();
+        return StreamSupport.stream(contractRepository.findAll().spliterator(), false)
+                .toList();
     }
 }

@@ -1,50 +1,47 @@
 package org.fusadora.model.datacontract;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
-import jakarta.persistence.Table;
+import com.google.cloud.spring.data.datastore.core.mapping.Entity;
+import com.google.cloud.spring.data.datastore.core.mapping.Field;
+import org.springframework.data.annotation.Id;
 
 import java.io.Serial;
 import java.io.Serializable;
 
-
-@Entity
-@Table(name = "data_contract")
+@Entity(name = "data_contract")
 public class DataContract implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty("contract_id")
-    @Column(name = "contract_id", nullable = false, unique = true)
+    @Field(name = "contract_id")
     private Long contractId;
 
     @JsonProperty("data_product_name")
-    @Column(name = "data_product_name", nullable = false)
+    @Field(name = "data_product_name")
     private String dataProductName;
 
     @JsonProperty("version")
-    @Column(name = "version", nullable = false)
+    @Field(name = "version")
     private String version;
 
     @JsonProperty("data_owner")
-    @Column(name = "data_owner", nullable = false)
+    @Field(name = "data_owner")
     private String dataOwner;
 
     @JsonProperty("description")
-    @Column(name = "description")
+    @Field(name = "description")
     private String description;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "output_port_id", referencedColumnName = "output_port_id")
-    @JsonProperty("output_port")
-    private OutPutPort outputPort;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "physical_model_id", referencedColumnName = "physical_model_id")
+    @JsonProperty("big_query_dataset")
+    @Field(name = "big_query_dataset")
+    private BigQueryDataset bigQueryDataset;
+
     @JsonProperty("physical_model")
+    @Field(name = "physical_model")
     private PhysicalModel physicalModel;
 
     // Getters and setters
@@ -89,12 +86,12 @@ public class DataContract implements Serializable {
         this.description = description;
     }
 
-    public OutPutPort getOutputPort() {
-        return outputPort;
+    public BigQueryDataset getBigQueryDataset() {
+        return bigQueryDataset;
     }
 
-    public void setOutputPort(OutPutPort outputPort) {
-        this.outputPort = outputPort;
+    public void setBigQueryDataset(BigQueryDataset bigQueryDataset) {
+        this.bigQueryDataset = bigQueryDataset;
     }
 
     public PhysicalModel getPhysicalModel() {

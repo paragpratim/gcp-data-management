@@ -1,18 +1,19 @@
 package org.fusadora.model.datacontract;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import com.google.cloud.spring.data.datastore.core.mapping.Entity;
+import com.google.cloud.spring.data.datastore.core.mapping.Field;
 
-@Entity
-public class BigQueryServer extends OutPutPort {
+
+@Entity(name = "bigquery_dataset")
+public class BigQueryDataset {
 
     @JsonProperty("project_id")
-    @Column(name = "project_id", nullable = false)
+    @Field(name = "project_id")
     private String project;
 
     @JsonProperty("data_set_name")
-    @Column(name = "data_set_name", nullable = false)
+    @Field(name = "data_set_name")
     private String dataset;
 
     //getters and setters

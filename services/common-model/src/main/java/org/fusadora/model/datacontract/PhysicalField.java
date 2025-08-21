@@ -1,59 +1,53 @@
 package org.fusadora.model.datacontract;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
+import com.google.cloud.spring.data.datastore.core.mapping.Entity;
+import com.google.cloud.spring.data.datastore.core.mapping.Field;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
-@Entity
-@Table(name = "table_fields")
-public class Field implements Serializable {
+@Entity(name = "physical_field")
+public class PhysicalField implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonProperty("field_id")
-    @Column(name = "field_id", nullable = false, unique = true)
-    private Long id;
+    @JsonProperty("nested_fields")
+    @Field(name = "nested_fields")
+    List<PhysicalField> nestedFields;
 
     @JsonProperty("field_name")
-    @Column(name = "field_name", nullable = false)
+    @Field(name = "field_name")
     private String name;
 
     @JsonProperty("field_type")
-    @Column(name = "field_type", nullable = false)
+    @Field(name = "field_type")
     private String type;
 
     @JsonProperty("field_description")
-    @Column(name = "field_description")
+    @Field(name = "field_description")
     private String description;
 
     @JsonProperty("is_primary_key")
-    @Column(name = "is_primary_key", nullable = false)
+    @Field(name = "is_primary_key")
     private boolean isPrimaryKey;
 
     @JsonProperty("is_foreign_key")
-    @Column(name = "is_foreign_key", nullable = false)
+    @Field(name = "is_foreign_key")
     private boolean isForeignKey;
 
     @JsonProperty("foreign_key_table")
-    @Column(name = "foreign_key_table")
+    @Field(name = "foreign_key_table")
     private String foreignKeyTable;
 
     @JsonProperty("foreign_key_field")
-    @Column(name = "foreign_key_field")
+    @Field(name = "foreign_key_field")
     private String foreignKeyField;
 
     @JsonProperty("constraints")
-    @Column(name = "constraints")
+    @Field(name = "constraints")
     private String constraints;
-
-    @ManyToOne
-    @JoinColumn(name = "table_id", nullable = false)
-    @JsonProperty("table")
-    private PhysicalTable table;
 
     public String getName() {
         return name;
@@ -119,19 +113,11 @@ public class Field implements Serializable {
         this.constraints = constraints;
     }
 
-    public Long getId() {
-        return id;
+    public List<PhysicalField> getNestedFields() {
+        return nestedFields;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public PhysicalTable getTable() {
-        return table;
-    }
-
-    public void setTable(PhysicalTable table) {
-        this.table = table;
+    public void setNestedFields(List<PhysicalField> nestedFields) {
+        this.nestedFields = nestedFields;
     }
 }
