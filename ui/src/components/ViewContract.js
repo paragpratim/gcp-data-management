@@ -56,25 +56,49 @@ export default function ViewContract() {
                 <div><strong>Partitioning Fields:</strong> {table.partitioning_fields}</div>
                 <div><strong>Clustering Fields:</strong> {table.clustering_fields}</div>
                 <h4>Physical Fields</h4>
-                {table.physical_fields?.map((field, fIdx) => (
-                  <div key={fIdx} style={{marginLeft: "10px", marginBottom: "8px"}}>
-                    <div><strong>Field Name:</strong> {field.field_name}</div>
-                    <div><strong>Field Type:</strong> {field.field_type}</div>
-                    <div><strong>Field Description:</strong> {field.field_description}</div>
-                    {field.nested_fields && field.nested_fields.length > 0 && (
-                      <div style={{marginLeft: "20px"}}>
-                        <strong>Nested Fields:</strong>
-                        {field.nested_fields.map((nested, nIdx) => (
-                          <div key={nIdx} style={{marginLeft: "10px", borderLeft: "2px solid #b3e5fc", paddingLeft: "10px", marginBottom: "8px"}}>
-                            <div><strong>Field Name:</strong> {nested.field_name}</div>
-                            <div><strong>Field Type:</strong> {nested.field_type}</div>
-                            <div><strong>Field Description:</strong> {nested.field_description}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                <table className="physical-fields-table" style={{tableLayout: "fixed", width: "100%"}}>
+                  <thead>
+                    <tr>
+                      <th style={{width: "18%"}}>Field Name</th>
+                      <th style={{width: "18%"}}>Field Type</th>
+                      <th style={{width: "18%"}}>Field Description</th>
+                      <th style={{width: "32%"}}>Nested Fields</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {table.physical_fields?.map((field, fIdx) => (
+                      <tr key={fIdx}>
+                        <td>{field.field_name}</td>
+                        <td>{field.field_type}</td>
+                        <td>{field.field_description}</td>
+                        <td>
+                          {field.nested_fields && field.nested_fields.length > 0 ? (
+                            <table style={{width: "100%", background: "#f5faff", borderRadius: "6px"}}>
+                              <thead>
+                                <tr>
+                                  <th style={{width: "30%"}}>Nested Field Name</th>
+                                  <th style={{width: "30%"}}>Type</th>
+                                  <th style={{width: "40%"}}>Description</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {field.nested_fields.map((nested, nIdx) => (
+                                  <tr key={nIdx}>
+                                    <td>{nested.field_name}</td>
+                                    <td>{nested.field_type}</td>
+                                    <td>{nested.field_description}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <span style={{color: "#888"}}>—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ))}
           </div>

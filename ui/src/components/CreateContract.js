@@ -162,7 +162,14 @@ export default function CreateContract() {
           <input type="text" name="data_product_name" placeholder="Data Product Name" value={contract.data_product_name} onChange={handleChange} required />
           <input type="text" name="version" placeholder="Version" value={contract.version} onChange={handleChange} required />
           <input type="text" name="data_owner" placeholder="Data Owner" value={contract.data_owner} onChange={handleChange} required />
-          <input type="text" name="description" placeholder="Description" value={contract.description} onChange={handleChange} required />
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={contract.description}
+            onChange={handleChange}
+            required
+            rows={3}
+          />
         </div>
         <div className="form-section">
           <h3>BigQuery Dataset</h3>
@@ -181,23 +188,109 @@ export default function CreateContract() {
               <button type="button" onClick={() => removeTable(tIdx)} style={{marginBottom: "10px"}}>Remove Table</button>
               <h4>Physical Fields</h4>
               <button type="button" onClick={() => addField(tIdx)}>Add Field</button>
-              {table.physical_fields && table.physical_fields.map((field, fIdx) => (
-                <div key={fIdx} style={{marginLeft: "10px", borderBottom: "1px solid #e0f7fa", paddingBottom: "8px", marginBottom: "8px"}}>
-                  <input type="text" name={`physical_fields.field_name.${tIdx}.${fIdx}`} placeholder="Field Name" value={field.field_name} onChange={handleChange} required />
-                  <input type="text" name={`physical_fields.field_type.${tIdx}.${fIdx}`} placeholder="Field Type" value={field.field_type} onChange={handleChange} required />
-                  <input type="text" name={`physical_fields.field_description.${tIdx}.${fIdx}`} placeholder="Field Description" value={field.field_description} onChange={handleChange} />
-                  <button type="button" onClick={() => addNestedField(tIdx, fIdx)} style={{marginLeft: "10px"}}>Add Nested Field</button>
-                  {field.nested_fields && field.nested_fields.map((nested, nIdx) => (
-                    <div key={nIdx} style={{marginLeft: "20px", borderLeft: "2px solid #b3e5fc", paddingLeft: "10px", marginBottom: "8px"}}>
-                      <input type="text" name={`nested_fields.field_name.${tIdx}.${fIdx}.${nIdx}`} placeholder="Nested Field Name" value={nested.field_name} onChange={handleChange} required />
-                      <input type="text" name={`nested_fields.field_type.${tIdx}.${fIdx}.${nIdx}`} placeholder="Nested Field Type" value={nested.field_type} onChange={handleChange} required />
-                      <input type="text" name={`nested_fields.field_description.${tIdx}.${fIdx}.${nIdx}`} placeholder="Nested Field Description" value={nested.field_description} onChange={handleChange} />
-                      <button type="button" onClick={() => removeNestedField(tIdx, fIdx, nIdx)} style={{marginLeft: "10px"}}>Remove Nested Field</button>
-                    </div>
+              <table className="physical-fields-table" style={{tableLayout: "fixed", width: "100%"}}>
+                <thead>
+                  <tr>
+                    <th style={{width: "18%"}}>Field Name</th>
+                    <th style={{width: "18%"}}>Field Type</th>
+                    <th style={{width: "18%"}}>Field Description</th>
+                    <th style={{width: "32%"}}>Nested Fields</th>
+                    <th style={{width: "14%"}}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {table.physical_fields && table.physical_fields.map((field, fIdx) => (
+                    <tr key={fIdx}>
+                      <td>
+                        <input type="text" name={`physical_fields.field_name.${tIdx}.${fIdx}`} placeholder="Field Name" value={field.field_name} onChange={handleChange} required />
+                      </td>
+                      <td>
+                        <select
+                          name={`physical_fields.field_type.${tIdx}.${fIdx}`}
+                          value={field.field_type}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="">Select Type</option>
+                          <option value="STRING">STRING</option>
+                          <option value="BYTES">BYTES</option>
+                          <option value="INT64">INT64</option>
+                          <option value="FLOAT64">FLOAT64</option>
+                          <option value="NUMERIC">NUMERIC</option>
+                          <option value="BIGNUMERIC">BIGNUMERIC</option>
+                          <option value="BOOL">BOOL</option>
+                          <option value="TIMESTAMP">TIMESTAMP</option>
+                          <option value="DATE">DATE</option>
+                          <option value="TIME">TIME</option>
+                          <option value="DATETIME">DATETIME</option>
+                          <option value="GEOGRAPHY">GEOGRAPHY</option>
+                          <option value="ARRAY">ARRAY</option>
+                          <option value="STRUCT">STRUCT</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" name={`physical_fields.field_description.${tIdx}.${fIdx}`} placeholder="Field Description" value={field.field_description} onChange={handleChange} />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn"
+                          title="Add Nested Field"
+                          onClick={() => addNestedField(tIdx, fIdx)}
+                        >
+                          +
+                        </button>
+                        {field.nested_fields && field.nested_fields.map((nested, nIdx) => (
+                          <div key={nIdx} className="nested-field-row">
+                            <input type="text" name={`nested_fields.field_name.${tIdx}.${fIdx}.${nIdx}`} placeholder="Nested Field Name" value={nested.field_name} onChange={handleChange} required />
+                            <select
+                              name={`nested_fields.field_type.${tIdx}.${fIdx}.${nIdx}`}
+                              value={nested.field_type}
+                              onChange={handleChange}
+                              required
+                            >
+                              <option value="">Select Type</option>
+                              <option value="STRING">STRING</option>
+                              <option value="BYTES">BYTES</option>
+                              <option value="INT64">INT64</option>
+                              <option value="FLOAT64">FLOAT64</option>
+                              <option value="NUMERIC">NUMERIC</option>
+                              <option value="BIGNUMERIC">BIGNUMERIC</option>
+                              <option value="BOOL">BOOL</option>
+                              <option value="TIMESTAMP">TIMESTAMP</option>
+                              <option value="DATE">DATE</option>
+                              <option value="TIME">TIME</option>
+                              <option value="DATETIME">DATETIME</option>
+                              <option value="GEOGRAPHY">GEOGRAPHY</option>
+                              <option value="ARRAY">ARRAY</option>
+                              <option value="STRUCT">STRUCT</option>
+                            </select>
+                            <input type="text" name={`nested_fields.field_description.${tIdx}.${fIdx}.${nIdx}`} placeholder="Description" value={nested.field_description} onChange={handleChange} />
+                            <button
+                              type="button"
+                              className="table-action-btn"
+                              title="Remove Nested Field"
+                              onClick={() => removeNestedField(tIdx, fIdx, nIdx)}
+                            >
+                              −
+                            </button>
+                          </div>
+                        ))}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn"
+                          title="Remove Field"
+                          onClick={() => removeField(tIdx, fIdx)}
+                        >
+                          −
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                  <button type="button" onClick={() => removeField(tIdx, fIdx)} style={{marginLeft: "10px"}}>Remove Field</button>
-                </div>
-              ))}
+                </tbody>
+              </table>
             </div>
           ))}
         </div>

@@ -6,12 +6,12 @@ body {
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1600px; /* was 1200px */
   margin: 40px auto;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-  padding: 40px 32px;
+  padding: 40px 48px; /* slightly more padding */
 }
 
 h1, h3, h4 {
@@ -81,7 +81,7 @@ label {
   display: block;
 }
 
-input[type="text"], input[type="number"], select {
+input[type="text"], textarea, input[type="number"], select {
   width: 100%;
   padding: 10px;
   border: 1px solid #90caf9;
@@ -89,7 +89,9 @@ input[type="text"], input[type="number"], select {
   background: #e3f2fd;
   margin-bottom: 16px;
   font-size: 1rem;
+  font-family: inherit;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 input[type="text"]:focus, input[type="number"]:focus, select:focus {
@@ -137,6 +139,82 @@ pre {
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
+}
+
+.physical-fields-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background: #f8fbff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.05);
+}
+
+.physical-fields-table th, .physical-fields-table td {
+  padding: 8px;
+  border: 1px solid #b3e5fc;
+  text-align: left;
+  vertical-align: top;
+}
+
+.physical-fields-table th {
+  background: #e3f2fd;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.physical-fields-table tr:last-child td {
+  border-bottom: none;
+}
+
+.nested-field-row {
+  margin-bottom: 4px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.table-action-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 2px 2px 2px 0;
+  transition: background 0.2s;
+  min-width: 0;
+  height: 28px;
+  line-height: 1.2;
+}
+
+.table-action-btn:hover {
+  background: #1565c0;
+}
+
+.physical-fields-table input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:disabled, select:disabled, textarea:disabled {
+  background: #f0f0f0 !important;
+  color: #888 !important;
+  border-color: #e0e0e0 !important;
+  cursor: not-allowed;
+}
+
+.table-action-btn:disabled {
+  background: #e0e0e0 !important;
+  color: #aaa !important;
+  border-color: #e0e0e0 !important;
+  cursor: not-allowed !important;
 }
 
 @media (max-width: 700px) {
