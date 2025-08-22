@@ -1,0 +1,306 @@
+import React, { useState } from "react";
+import API_CONFIG from "../config";
+import "./../styles.css";
+
+export default function CreateContract() {
+  const [result, setResult] = useState("");
+  const [contract, setContract] = useState({
+    data_product_name: "",
+    version: "",
+    data_owner: "",
+    description: "",
+    big_query_dataset: {
+      project_id: "",
+      data_set_name: ""
+    },
+    physical_model: {
+      physical_tables: []
+    }
+  });
+
+  const addTable = () => {
+    setContract({
+      ...contract,
+      physical_model: {
+        physical_tables: [
+          ...contract.physical_model.physical_tables,
+          {
+            table_name: "",
+            table_description: "",
+            physical_fields: [],
+            partitioning_fields: "",
+            clustering_fields: ""
+          }
+        ]
+      }
+    });
+  };
+
+  const removeTable = (tIdx) => {
+    const tables = [...contract.physical_model.physical_tables];
+    tables.splice(tIdx, 1);
+    setContract({
+      ...contract,
+      physical_model: { physical_tables: tables }
+    });
+  };
+
+  const addField = (tIdx) => {
+    const tables = [...contract.physical_model.physical_tables];
+    tables[tIdx].physical_fields = tables[tIdx].physical_fields || [];
+    tables[tIdx].physical_fields.push({
+      nested_fields: [],
+      field_name: "",
+      field_type: "",
+      field_description: ""
+    });
+    setContract({
+      ...contract,
+      physical_model: { physical_tables: tables }
+    });
+  };
+
+  const removeField = (tIdx, fIdx) => {
+    const tables = [...contract.physical_model.physical_tables];
+    tables[tIdx].physical_fields.splice(fIdx, 1);
+    setContract({
+      ...contract,
+      physical_model: { physical_tables: tables }
+    });
+  };
+
+  // Add a nested field (full field object) to a physical field
+  const addNestedField = (tIdx, fIdx) => {
+    const tables = [...contract.physical_model.physical_tables];
+    tables[tIdx].physical_fields[fIdx].nested_fields = tables[tIdx].physical_fields[fIdx].nested_fields || [];
+    tables[tIdx].physical_fields[fIdx].nested_fields.push({
+      field_name: "",
+      field_type: "",
+      field_description: "",
+      nested_fields: []
+    });
+    setContract({
+      ...contract,
+      physical_model: { physical_tables: tables }
+    });
+  };
+
+  // Remove a nested field from a physical field
+  const removeNestedField = (tIdx, fIdx, nIdx) => {
+    const tables = [...contract.physical_model.physical_tables];
+    tables[tIdx].physical_fields[fIdx].nested_fields.splice(nIdx, 1);
+    setContract({
+      ...contract,
+      physical_model: { physical_tables: tables }
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.startsWith("big_query_dataset.")) {
+      setContract({
+        ...contract,
+        big_query_dataset: {
+          ...contract.big_query_dataset,
+          [name.split(".")[1]]: value
+        }
+      });
+    } else if (name.startsWith("physical_tables.")) {
+      const [, field, tIdx] = name.split(".");
+      const tables = [...contract.physical_model.physical_tables];
+      tables[tIdx][field] = value;
+      setContract({
+        ...contract,
+        physical_model: { physical_tables: tables }
+      });
+    } else if (name.startsWith("physical_fields.")) {
+      const [, field, tIdx, fIdx] = name.split(".");
+      const tables = [...contract.physical_model.physical_tables];
+      tables[tIdx].physical_fields[fIdx][field] = value;
+      setContract({
+        ...contract,
+        physical_model: { physical_tables: tables }
+      });
+    } else if (name.startsWith("nested_fields.")) {
+      const [, field, tIdx, fIdx, nIdx] = name.split(".");
+      const tables = [...contract.physical_model.physical_tables];
+      tables[tIdx].physical_fields[fIdx].nested_fields[nIdx][field] = value;
+      setContract({
+        ...contract,
+        physical_model: { physical_tables: tables }
+      });
+    } else {
+      setContract({ ...contract, [name]: value });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(API_CONFIG.BASE_URL + "/api/contracts/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(contract)
+      });
+      const text = await res.text();
+      try {
+        setResult(JSON.stringify(JSON.parse(text), null, 2));
+      } catch {
+        setResult(text);
+      }
+    } catch (err) {
+      setResult("Error: " + err);
+    }
+  };
+
+  return (
+    <div className="container">
+      <h1>Create Data Contract</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="form-section">
+          <h3>General Info</h3>
+          <input type="text" name="data_product_name" placeholder="Data Product Name" value={contract.data_product_name} onChange={handleChange} required />
+          <input type="text" name="version" placeholder="Version" value={contract.version} onChange={handleChange} required />
+          <input type="text" name="data_owner" placeholder="Data Owner" value={contract.data_owner} onChange={handleChange} required />
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={contract.description}
+            onChange={handleChange}
+            required
+            rows={3}
+          />
+        </div>
+        <div className="form-section">
+          <h3>BigQuery Dataset</h3>
+          <input type="text" name="big_query_dataset.project_id" placeholder="Project ID" value={contract.big_query_dataset.project_id} onChange={handleChange} required />
+          <input type="text" name="big_query_dataset.data_set_name" placeholder="Dataset Name" value={contract.big_query_dataset.data_set_name} onChange={handleChange} required />
+        </div>
+        <div className="form-section">
+          <h3>Physical Tables</h3>
+          <button type="button" onClick={addTable}>Add Table</button>
+          {contract.physical_model.physical_tables.map((table, tIdx) => (
+            <div key={tIdx} style={{border: "1px solid #b3e5fc", padding: "10px", marginBottom: "10px", borderRadius: "6px"}}>
+              <input type="text" name={`physical_tables.table_name.${tIdx}`} placeholder="Table Name" value={table.table_name} onChange={handleChange} required />
+              <input type="text" name={`physical_tables.table_description.${tIdx}`} placeholder="Table Description" value={table.table_description} onChange={handleChange} required />
+              <input type="text" name={`physical_tables.partitioning_fields.${tIdx}`} placeholder="Partitioning Fields" value={table.partitioning_fields} onChange={handleChange} />
+              <input type="text" name={`physical_tables.clustering_fields.${tIdx}`} placeholder="Clustering Fields" value={table.clustering_fields} onChange={handleChange} />
+              <button type="button" onClick={() => removeTable(tIdx)} style={{marginBottom: "10px"}}>Remove Table</button>
+              <h4>Physical Fields</h4>
+              <button type="button" onClick={() => addField(tIdx)}>Add Field</button>
+              <table className="physical-fields-table" style={{tableLayout: "fixed", width: "100%"}}>
+                <thead>
+                  <tr>
+                    <th style={{width: "18%"}}>Field Name</th>
+                    <th style={{width: "18%"}}>Field Type</th>
+                    <th style={{width: "18%"}}>Field Description</th>
+                    <th style={{width: "32%"}}>Nested Fields</th>
+                    <th style={{width: "14%"}}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {table.physical_fields && table.physical_fields.map((field, fIdx) => (
+                    <tr key={fIdx}>
+                      <td>
+                        <input type="text" name={`physical_fields.field_name.${tIdx}.${fIdx}`} placeholder="Field Name" value={field.field_name} onChange={handleChange} required />
+                      </td>
+                      <td>
+                        <select
+                          name={`physical_fields.field_type.${tIdx}.${fIdx}`}
+                          value={field.field_type}
+                          onChange={handleChange}
+                          required
+                        >
+                          <option value="">Select Type</option>
+                          <option value="STRING">STRING</option>
+                          <option value="BYTES">BYTES</option>
+                          <option value="INT64">INT64</option>
+                          <option value="FLOAT64">FLOAT64</option>
+                          <option value="NUMERIC">NUMERIC</option>
+                          <option value="BIGNUMERIC">BIGNUMERIC</option>
+                          <option value="BOOL">BOOL</option>
+                          <option value="TIMESTAMP">TIMESTAMP</option>
+                          <option value="DATE">DATE</option>
+                          <option value="TIME">TIME</option>
+                          <option value="DATETIME">DATETIME</option>
+                          <option value="GEOGRAPHY">GEOGRAPHY</option>
+                          <option value="ARRAY">ARRAY</option>
+                          <option value="STRUCT">STRUCT</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" name={`physical_fields.field_description.${tIdx}.${fIdx}`} placeholder="Field Description" value={field.field_description} onChange={handleChange} />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn"
+                          title="Add Nested Field"
+                          onClick={() => addNestedField(tIdx, fIdx)}
+                        >
+                          +
+                        </button>
+                        {field.nested_fields && field.nested_fields.map((nested, nIdx) => (
+                          <div key={nIdx} className="nested-field-row">
+                            <input type="text" name={`nested_fields.field_name.${tIdx}.${fIdx}.${nIdx}`} placeholder="Nested Field Name" value={nested.field_name} onChange={handleChange} required />
+                            <select
+                              name={`nested_fields.field_type.${tIdx}.${fIdx}.${nIdx}`}
+                              value={nested.field_type}
+                              onChange={handleChange}
+                              required
+                            >
+                              <option value="">Select Type</option>
+                              <option value="STRING">STRING</option>
+                              <option value="BYTES">BYTES</option>
+                              <option value="INT64">INT64</option>
+                              <option value="FLOAT64">FLOAT64</option>
+                              <option value="NUMERIC">NUMERIC</option>
+                              <option value="BIGNUMERIC">BIGNUMERIC</option>
+                              <option value="BOOL">BOOL</option>
+                              <option value="TIMESTAMP">TIMESTAMP</option>
+                              <option value="DATE">DATE</option>
+                              <option value="TIME">TIME</option>
+                              <option value="DATETIME">DATETIME</option>
+                              <option value="GEOGRAPHY">GEOGRAPHY</option>
+                              <option value="ARRAY">ARRAY</option>
+                              <option value="STRUCT">STRUCT</option>
+                            </select>
+                            <input type="text" name={`nested_fields.field_description.${tIdx}.${fIdx}.${nIdx}`} placeholder="Description" value={nested.field_description} onChange={handleChange} />
+                            <button
+                              type="button"
+                              className="table-action-btn"
+                              title="Remove Nested Field"
+                              onClick={() => removeNestedField(tIdx, fIdx, nIdx)}
+                            >
+                              −
+                            </button>
+                          </div>
+                        ))}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="table-action-btn"
+                          title="Remove Field"
+                          onClick={() => removeField(tIdx, fIdx)}
+                        >
+                          −
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+        <button type="submit">Save Changes</button>
+      </form>
+      {result && (
+        <div className={result.startsWith("Error") ? "alert-error" : "alert-success"}>
+          {result}
+        </div>
+      )}
+    </div>
+  );
+}
