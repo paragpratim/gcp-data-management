@@ -3,10 +3,24 @@ package org.fusadora.contract.utils;
 import org.fusadora.model.datacontract.PhysicalField;
 import org.fusadora.model.datacontract.PhysicalTable;
 
-public class LiquibaseUtil {
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class LiquibaseChangeSetUtil {
 
     private static final String CHANGESET_AUTHOR = "fusadora";
 
+    private LiquibaseChangeSetUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
+    public static void generateLiquibaseChangeSetSqlFile(PhysicalTable aPhysicalTable, String dataSetName, String filePath) throws IOException {
+        String liquibaseFormatedSql = getLiquibaseChangeSetSql(aPhysicalTable, dataSetName);
+        Path changeSetDirectoryPath = Path.of(filePath).resolve(dataSetName);
+        Files.createDirectories(changeSetDirectoryPath);
+        Files.writeString(changeSetDirectoryPath.resolve(aPhysicalTable.getName() + ".sql"), liquibaseFormatedSql);
+    }
 
     public static String getLiquibaseChangeSetSql(PhysicalTable aPhysicalTable, String dataSetName) {
         StringBuilder changeSet = new StringBuilder();
