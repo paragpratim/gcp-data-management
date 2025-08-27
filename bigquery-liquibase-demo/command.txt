@@ -1,0 +1,2 @@
+export LIQUIBASE_COMMAND_URL="jdbc:bigquery://https://googleapis.com/bigquery/v2:443;ProjectId=gcp-data-plane-458721;OAuthType=3;DefaultDataset=liquibase_changelog;"
+
