@@ -1,4 +1,4 @@
-package org.fusadora.contract;
+package org.fusadora;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

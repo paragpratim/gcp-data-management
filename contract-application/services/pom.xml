@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>org.fusadora</groupId>
-    <artifactId>contract-service</artifactId>
+    <artifactId>services</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>contract-service</name>
+    <name>services</name>
     <description>Java Spring boot application for storing and retrieving Data Ingestion Contract</description>
 
     <!-- <url/>

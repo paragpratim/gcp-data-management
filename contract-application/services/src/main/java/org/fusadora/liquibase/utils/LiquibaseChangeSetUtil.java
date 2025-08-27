@@ -1,4 +1,4 @@
-package org.fusadora.contract.utils;
+package org.fusadora.liquibase.utils;
 
 import org.fusadora.model.datacontract.PhysicalField;
 import org.fusadora.model.datacontract.PhysicalTable;

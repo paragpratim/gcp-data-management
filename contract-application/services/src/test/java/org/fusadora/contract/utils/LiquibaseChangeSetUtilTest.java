@@ -1,5 +1,6 @@
 package org.fusadora.contract.utils;
 
+import org.fusadora.liquibase.utils.LiquibaseChangeSetUtil;
 import org.fusadora.model.datacontract.PhysicalField;
 import org.fusadora.model.datacontract.PhysicalTable;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package org.fusadora.contract.utils;
+package org.fusadora.liquibase.utils;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;

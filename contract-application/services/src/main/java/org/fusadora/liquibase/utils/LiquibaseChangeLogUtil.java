@@ -1,4 +1,4 @@
-package org.fusadora.contract.utils;
+package org.fusadora.liquibase.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

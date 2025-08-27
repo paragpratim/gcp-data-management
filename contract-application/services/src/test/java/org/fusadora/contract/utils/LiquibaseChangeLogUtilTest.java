@@ -1,6 +1,7 @@
 package org.fusadora.contract.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.fusadora.liquibase.utils.LiquibaseChangeLogUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
