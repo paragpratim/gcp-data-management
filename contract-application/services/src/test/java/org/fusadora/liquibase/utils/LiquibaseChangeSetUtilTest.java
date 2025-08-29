@@ -1,6 +1,5 @@
-package org.fusadora.contract.utils;
+package org.fusadora.liquibase.utils;
 
-import org.fusadora.liquibase.utils.LiquibaseChangeSetUtil;
 import org.fusadora.model.datacontract.PhysicalField;
 import org.fusadora.model.datacontract.PhysicalTable;
 import org.junit.jupiter.api.Test;
@@ -48,15 +47,17 @@ class LiquibaseChangeSetUtilTest {
         // Arrange
         PhysicalTable table = createSamplePhysicalTable();
         String dataSetName = "test_dataset";
+        String projectId = "test_project";
         Path tempDir = Path.of("").toAbsolutePath().resolve("liquibase_test");
         Files.createDirectories(tempDir);
         String filePath = tempDir.toString();
 
         // Act
-        LiquibaseChangeSetUtil.generateLiquibaseChangeSetSqlFile(table, dataSetName, filePath);
+        LiquibaseChangeSetUtil.generateLiquibaseChangeSetSqlFile(table, projectId, dataSetName, filePath);
 
         // Assert
-        Path expectedFile = tempDir.resolve(dataSetName).resolve("test_table.sql");
+        Path expectedDir = tempDir.resolve(projectId).resolve(dataSetName);
+        Path expectedFile = expectedDir.resolve("test_table.sql");
         assertTrue(Files.exists(expectedFile), "SQL file should be created");
 
         String content = Files.readString(expectedFile);
@@ -66,7 +67,8 @@ class LiquibaseChangeSetUtilTest {
 
         // Cleanup
         Files.deleteIfExists(expectedFile);
-        Files.deleteIfExists(tempDir.resolve(dataSetName));
+        Files.deleteIfExists(expectedDir);
+        Files.deleteIfExists(tempDir.resolve(projectId));
         Files.deleteIfExists(tempDir);
     }
 }

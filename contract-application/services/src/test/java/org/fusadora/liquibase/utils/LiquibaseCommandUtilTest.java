@@ -1,6 +1,5 @@
-package org.fusadora.contract.utils;
+package org.fusadora.liquibase.utils;
 
-import org.fusadora.liquibase.utils.LiquibaseCommandUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

@@ -1,14 +1,14 @@
-package org.fusadora.contract.utils;
+package org.fusadora.liquibase.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.fusadora.liquibase.utils.LiquibaseChangeLogUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquibaseChangeLogUtilTest {
 
@@ -33,23 +33,25 @@ class LiquibaseChangeLogUtilTest {
     @Test
     void testGenerateLiquibaseChangeLogJsonFile() throws IOException {
         String dataSetName = "test_dataset";
+        String projectId = "test_project";
         Path tempDir = Path.of("").toAbsolutePath().resolve("liquibase_changelog_test");
         Files.createDirectories(tempDir);
         String filePath = tempDir.toString();
 
         // Act
-        LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(dataSetName, filePath);
+        LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(projectId, dataSetName, filePath);
 
         // Assert
-        Path expectedFile = tempDir.resolve(dataSetName + ".json");
+        Path expectedDir = tempDir.resolve(projectId);
+        Path expectedFile = expectedDir.resolve(dataSetName + ".json");
         assertTrue(Files.exists(expectedFile), "JSON file should be created");
 
         String content = Files.readString(expectedFile);
         assertTrue(content.contains("\"path\" : \"test_dataset/\""));
         assertTrue(content.contains("\"relativeToChangelogFile\" : true"));
 
-//        // Cleanup
+        // Cleanup
         Files.deleteIfExists(expectedFile);
-        Files.deleteIfExists(tempDir);
+        Files.deleteIfExists(expectedDir);
     }
 }

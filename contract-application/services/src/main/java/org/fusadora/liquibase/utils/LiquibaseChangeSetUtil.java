@@ -15,9 +15,10 @@ public class LiquibaseChangeSetUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void generateLiquibaseChangeSetSqlFile(PhysicalTable aPhysicalTable, String dataSetName, String filePath) throws IOException {
-        String liquibaseFormatedSql = getLiquibaseChangeSetSql(aPhysicalTable, dataSetName);
-        Path changeSetDirectoryPath = Path.of(filePath).resolve(dataSetName);
+    public static void generateLiquibaseChangeSetSqlFile(PhysicalTable aPhysicalTable, String aProjectId, String aDatasetName, String liquibasePath) throws IOException {
+        String liquibaseFormatedSql = getLiquibaseChangeSetSql(aPhysicalTable, aDatasetName);
+        // File Path: <liquibasePath>/<projectId>/<dataSetName>/<tableName>.sql
+        Path changeSetDirectoryPath = Path.of(liquibasePath).resolve(aProjectId).resolve(aDatasetName);
         Files.createDirectories(changeSetDirectoryPath);
         Files.writeString(changeSetDirectoryPath.resolve(aPhysicalTable.getName() + ".sql"), liquibaseFormatedSql);
     }
