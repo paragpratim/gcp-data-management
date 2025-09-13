@@ -35,7 +35,8 @@ public class LiquibaseCommandUtil {
         }
 
         // Changelog file path
-        Path changelogFilePath = Path.of(liquibasePath).resolve(aProjectId);
+        // File Path: <liquibasePath>/<projectId>/<version>/<dataSetName>.json
+        Path changelogFilePath = Path.of(liquibasePath).resolve(aProjectId).resolve(dataProductVersion);
         String changelogFile = changelogFilePath.resolve(aDataset + ".json").toString();
 
         // ResourceAccessor pointing to the directory containing changelog and SQL files for the specific project

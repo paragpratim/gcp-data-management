@@ -48,15 +48,16 @@ class LiquibaseChangeSetUtilTest {
         PhysicalTable table = createSamplePhysicalTable();
         String dataSetName = "test_dataset";
         String projectId = "test_project";
+        String dataProductVersion = "v1";
         Path tempDir = Path.of("").toAbsolutePath().resolve("liquibase_test");
         Files.createDirectories(tempDir);
         String filePath = tempDir.toString();
 
         // Act
-        LiquibaseChangeSetUtil.generateLiquibaseChangeSetSqlFile(table, projectId, dataSetName, filePath);
+        LiquibaseChangeSetUtil.generateLiquibaseChangeSetSqlFile(table, projectId, dataSetName, filePath, dataProductVersion);
 
         // Assert
-        Path expectedDir = tempDir.resolve(projectId).resolve(dataSetName);
+        Path expectedDir = tempDir.resolve(projectId).resolve(dataProductVersion).resolve(dataSetName);
         Path expectedFile = expectedDir.resolve("test_table.sql");
         assertTrue(Files.exists(expectedFile), "SQL file should be created");
 
@@ -67,7 +68,8 @@ class LiquibaseChangeSetUtilTest {
 
         // Cleanup
         Files.deleteIfExists(expectedFile);
-        Files.deleteIfExists(expectedDir);
+        Files.deleteIfExists(tempDir.resolve(projectId).resolve(dataProductVersion).resolve(dataSetName));
+        Files.deleteIfExists(tempDir.resolve(projectId).resolve(dataProductVersion));
         Files.deleteIfExists(tempDir.resolve(projectId));
         Files.deleteIfExists(tempDir);
     }

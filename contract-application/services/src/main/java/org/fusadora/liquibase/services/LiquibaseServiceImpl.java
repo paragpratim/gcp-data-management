@@ -31,7 +31,8 @@ public class LiquibaseServiceImpl implements LiquibaseService {
             try {
                 LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(dataContract.get().getBigQueryDataset().getProject(),
                         dataContract.get().getBigQueryDataset().getDataset(),
-                        LIQUIBASE_PATH);
+                        LIQUIBASE_PATH,
+                        dataContract.get().getVersion());
             } catch (IOException e) {
                 logger.error("Error generating Change Log", e);
             }
@@ -41,7 +42,8 @@ public class LiquibaseServiceImpl implements LiquibaseService {
                     LiquibaseChangeSetUtil.generateLiquibaseChangeSetSqlFile(table,
                             dataContract.get().getBigQueryDataset().getProject(),
                             dataContract.get().getBigQueryDataset().getDataset(),
-                            LIQUIBASE_PATH);
+                            LIQUIBASE_PATH,
+                            dataContract.get().getVersion());
                 }
             } catch (IOException e) {
                 logger.error("Error generating Change Set SQL files", e);

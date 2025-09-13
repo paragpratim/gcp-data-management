@@ -34,15 +34,16 @@ class LiquibaseChangeLogUtilTest {
     void testGenerateLiquibaseChangeLogJsonFile() throws IOException {
         String dataSetName = "test_dataset";
         String projectId = "test_project";
+        String dataProductVersion = "v1";
         Path tempDir = Path.of("").toAbsolutePath().resolve("liquibase_changelog_test");
         Files.createDirectories(tempDir);
         String filePath = tempDir.toString();
 
         // Act
-        LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(projectId, dataSetName, filePath);
+        LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(projectId, dataSetName, filePath, dataProductVersion);
 
         // Assert
-        Path expectedDir = tempDir.resolve(projectId);
+        Path expectedDir = tempDir.resolve(projectId).resolve(dataProductVersion);
         Path expectedFile = expectedDir.resolve(dataSetName + ".json");
         assertTrue(Files.exists(expectedFile), "JSON file should be created");
 
@@ -52,6 +53,8 @@ class LiquibaseChangeLogUtilTest {
 
         // Cleanup
         Files.deleteIfExists(expectedFile);
-        Files.deleteIfExists(expectedDir);
+        Files.deleteIfExists(tempDir.resolve(projectId).resolve(dataProductVersion));
+        Files.deleteIfExists(tempDir.resolve(projectId));
+        Files.deleteIfExists(tempDir);
     }
 }
