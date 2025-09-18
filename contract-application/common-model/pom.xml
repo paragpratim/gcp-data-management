@@ -11,7 +11,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>org.fusadora</groupId>
+    <groupId>com.fusadora</groupId>
     <artifactId>common-model</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>common-model</name>
