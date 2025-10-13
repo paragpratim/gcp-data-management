@@ -1,0 +1,36 @@
+version: '3'
+
+tasks:
+  all:
+    desc: Build backend, build docker images, and run docker compose
+    cmds:
+      - task: build-backend
+      - task: docker-build
+      - task: docker-up
+
+  build-backend:
+    desc: Maven clean install for backend
+    cmds:
+      - cd contract-application && ./mvnw clean package -pl services
+
+  build-frontend:
+    desc: Install and build React frontend
+    cmds:
+      - cd contract-ui && npm install && npm run build
+
+  docker-build:
+    desc: Build Docker images
+    cmds:
+      - docker-compose build
+
+  docker-up:
+    desc: Run Docker Compose
+    cmds:
+      - docker-compose up
+
+  clean:
+    desc: Clean backend, frontend, and stop containers
+    cmds:
+      - cd contract-application && mvn clean
+      - cd contract-ui && rm -rf node_modules build
+      - docker-compose down -v
