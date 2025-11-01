@@ -44,7 +44,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.fusadora</groupId>
+            <groupId>com.fusadora</groupId>
             <artifactId>common-model</artifactId>
             <version>${project.version}</version>
         </dependency>
