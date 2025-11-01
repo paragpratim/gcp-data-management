@@ -9,5 +9,5 @@ public interface GCPService {
 
     public void addGCPProject(GCPProjects gcpProjectId);
     public List<GCPProjects> getGCPProjects();
-    public List<BigQueryDataset> getBigQueryDatasets();
+    public List<BigQueryDataset> getBigQueryDatasets(String gcpProjectId);
 }

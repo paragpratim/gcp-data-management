@@ -33,17 +33,15 @@ public class GCPServiceImpl implements GCPService {
     }
 
     @Override
-    public List<BigQueryDataset> getBigQueryDatasets() {
+    public List<BigQueryDataset> getBigQueryDatasets(String gcpProjectId) {
         List<BigQueryDataset> bigQueryDatasets = new java.util.ArrayList<>();
         try {
-            for (GCPProjects gcpProjects : getGCPProjects()) {
-                BigQuery bigQuery = BigQueryOptions.newBuilder().setProjectId(gcpProjects.getProject()).build().getService();
-                for (Dataset dataset : bigQuery.listDatasets(BigQuery.DatasetListOption.all()).iterateAll()) {
-                    BigQueryDataset bigQueryDataset = new BigQueryDataset();
-                    bigQueryDataset.setProject(gcpProjects.getProject());
-                    bigQueryDataset.setDataset(dataset.getDatasetId().getDataset());
-                    bigQueryDatasets.add(bigQueryDataset);
-                }
+            BigQuery bigQuery = BigQueryOptions.newBuilder().setProjectId(gcpProjectId).build().getService();
+            for (Dataset dataset : bigQuery.listDatasets(BigQuery.DatasetListOption.all()).iterateAll()) {
+                BigQueryDataset bigQueryDataset = new BigQueryDataset();
+                bigQueryDataset.setProject(gcpProjectId);
+                bigQueryDataset.setDataset(dataset.getDatasetId().getDataset());
+                bigQueryDatasets.add(bigQueryDataset);
             }
         } catch (BigQueryException e) {
             logger.error("BigQueryException occurred: {}", e.getMessage());

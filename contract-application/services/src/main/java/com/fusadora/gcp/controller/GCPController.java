@@ -36,11 +36,11 @@ public class GCPController {
         return gcpService.getGCPProjects();
     }
 
-    @GetMapping("/getBigQueryDatasets")
-    public List<BigQueryDataset> getBigQueryDatasets() {
+    @GetMapping("/getBigQueryDatasets/{gcpProjectId}")
+    public List<BigQueryDataset> getBigQueryDatasets(@PathVariable String gcpProjectId) {
         List<BigQueryDataset> datasets = new ArrayList<>();
         try {
-            datasets = gcpService.getBigQueryDatasets();
+            datasets = gcpService.getBigQueryDatasets(gcpProjectId);
         } catch (Exception e) {
             logger.error("Error retrieving BigQuery datasets: ", e);
         }
