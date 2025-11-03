@@ -5,24 +5,16 @@ resource "google_service_account" "contract_service_account" {
   description  = "Service account for data contract application"
 }
 
-# Assign BigQuery Admin role
-resource "google_project_iam_member" "bigquery_admin" {
-  project = var.project_id
-  role    = "roles/bigquery.admin"
-  member  = "serviceAccount:${google_service_account.contract_service_account.email}"
-}
+# Assign multiple roles to service account
+resource "google_project_iam_member" "contract_service_account_roles" {
+  for_each = toset([
+    "roles/bigquery.admin",
+    "roles/storage.admin",
+    "roles/artifactregistry.writer"
+  ])
 
-# Assign Storage Admin role
-resource "google_project_iam_member" "storage_admin" {
   project = var.project_id
-  role    = "roles/storage.admin"
-  member  = "serviceAccount:${google_service_account.contract_service_account.email}"
-}
-
-# Assign Artifact Registry Writer role
-resource "google_project_iam_member" "artifact_registry_writer" {
-  project = var.project_id
-  role    = "roles/artifactregistry.writer"
+  role    = each.value
   member  = "serviceAccount:${google_service_account.contract_service_account.email}"
 }
 
