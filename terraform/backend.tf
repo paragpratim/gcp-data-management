@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = var.tf_state_bucket
+    bucket = "data-management-tf-state-e0e9"
     prefix = "contract-application"
   }
 }

@@ -26,7 +26,6 @@ env:
   REGION: europe-west4
   TF_VAR_project_id: gcp-data-management-e0e9
   TF_VAR_region: europe-west4
-  TF_VAR_tf_state_bucket: data-management-tf-state-e0e9
   TF_VAR_support_email: paragpratim@fusadora.com
   TF_VAR_iap_members: '["domain:fusadora.com","user:paragpratim@fusadora.com"]'
 
@@ -52,6 +51,9 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set gcloud project
+        run: gcloud config set project ${{ env.PROJECT_ID }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
