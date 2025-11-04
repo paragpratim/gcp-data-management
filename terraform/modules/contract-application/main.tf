@@ -27,7 +27,7 @@ resource "google_artifact_registry_repository" "data_management" {
   format        = "DOCKER"
 }
 
-# Enable IAP API
+# Enable IAP API (still needed for manual IAP setup)
 resource "google_project_service" "iap_api" {
   service = "iap.googleapis.com"
 
