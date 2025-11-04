@@ -48,21 +48,10 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEPLOYMENT_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL_NAME }}/providers/${{ secrets.WIF_PROVIDER_NAME }}'
           service_account: ${{ secrets.DEPLOYMENT_SVC }}
           audience: ${{ secrets.WIF_AUDIENCE }}
+          project_id: ${{ env.PROJECT_ID }}  # Set target project directly in auth
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure gcloud for target project
-        run: |
-          # Set the target project explicitly
-          gcloud config set project ${{ env.PROJECT_ID }}
-          
-          # Verify the project is set correctly
-          echo "Current gcloud project: $(gcloud config get-value project)"
-          
-          # Set additional environment variables to override any defaults
-          echo "GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
-          echo "CLOUDSDK_CORE_PROJECT=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
