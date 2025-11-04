@@ -8,6 +8,6 @@ terraform {
 }
 
 provider "google" {
-  project = "gcp-data-management-e0e9"
-  region  = "europe-west4"
+  project = var.project_id
+  region  = var.region
 }
