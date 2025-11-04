@@ -34,18 +34,18 @@ resource "google_project_service" "iap_api" {
   disable_on_destroy = false
 }
 
-# Create OAuth2 consent screen (required for IAP)
-resource "google_iap_brand" "project_brand" {
-  support_email     = var.support_email
-  application_title = "Data Contract Manager"
-  project           = var.project_id
-}
+# # Create OAuth2 consent screen (required for IAP)
+# resource "google_iap_brand" "project_brand" {
+#   support_email     = var.support_email
+#   application_title = "Data Contract Manager"
+#   project           = var.project_id
+# }
 
-# Create OAuth2 client for IAP
-resource "google_iap_client" "contract_app_client" {
-  display_name = "Contract App IAP Client"
-  brand        = google_iap_brand.project_brand.name
-}
+# # Create OAuth2 client for IAP
+# resource "google_iap_client" "contract_app_client" {
+#   display_name = "Contract App IAP Client"
+#   brand        = google_iap_brand.project_brand.name
+# }
 
 # # Data source to get the Cloud Run service (deployed via GitHub Actions)
 # data "google_cloud_run_service" "contract_app" {
