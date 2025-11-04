@@ -16,6 +16,7 @@ resource "google_project_iam_member" "contract_service_account_roles" {
   project = var.project_id
   role    = each.value
   member  = "serviceAccount:${google_service_account.contract_service_account.email}"
+  depends_on = [google_service_account.contract_service_account]
 }
 
 # Create Artifact Registry repository
