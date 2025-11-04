@@ -7,12 +7,37 @@ export default function UpdateContract() {
   const [selectedId, setSelectedId] = useState("");
   const [contract, setContract] = useState(null);
   const [result, setResult] = useState("");
+  const [projects, setProjects] = useState([]);
+  const [datasets, setDatasets] = useState([]);
 
   useEffect(() => {
     fetch(API_CONFIG.BASE_URL + "/api/contracts/all-ids")
       .then(res => res.json())
       .then(setIds);
   }, []);
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    fetch(API_CONFIG.BASE_URL + "/api/gcp/getProjects")
+      .then(res => res.json())
+      .then(data => setProjects(data))
+      .catch(err => console.error("Failed to fetch projects:", err));
+  }, []);
+
+  // Fetch datasets when project ID changes
+  useEffect(() => {
+    if (contract && contract.big_query_dataset && contract.big_query_dataset.project_id) {
+      fetch(API_CONFIG.BASE_URL + `/api/gcp/getBigQueryDatasets/${contract.big_query_dataset.project_id}`)
+        .then(res => res.json())
+        .then(data => setDatasets(data))
+        .catch(err => {
+          console.error("Failed to fetch datasets:", err);
+          setDatasets([]);
+        });
+    } else {
+      setDatasets([]);
+    }
+  }, [contract && contract.big_query_dataset && contract.big_query_dataset.project_id]);
 
   const handleLoad = () => {
     if (!selectedId) return;
@@ -99,11 +124,14 @@ export default function UpdateContract() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name.startsWith("big_query_dataset.")) {
+      const field = name.split(".")[1];
       setContract({
         ...contract,
         big_query_dataset: {
           ...contract.big_query_dataset,
-          [name.split(".")[1]]: value
+          [field]: value,
+          // Clear dataset name when project changes
+          ...(field === "project_id" && { data_set_name: "" })
         }
       });
     } else if (name.startsWith("physical_tables.")) {
@@ -208,8 +236,33 @@ export default function UpdateContract() {
           </div>
           <div className="form-section">
             <h3>BigQuery Dataset</h3>
-            <input type="text" name="big_query_dataset.project_id" placeholder="Project ID" value={contract.big_query_dataset.project_id} onChange={handleChange} required />
-            <input type="text" name="big_query_dataset.data_set_name" placeholder="Dataset Name" value={contract.big_query_dataset.data_set_name} onChange={handleChange} required />
+            <select 
+              name="big_query_dataset.project_id" 
+              value={contract.big_query_dataset.project_id} 
+              onChange={handleChange} 
+              required
+            >
+              <option value="">Select Project ID</option>
+              {projects.map((project) => (
+                <option key={project.gcp_project_record_id} value={project.gcp_project_id}>
+                  {project.gcp_project_id}
+                </option>
+              ))}
+            </select>
+            <select 
+              name="big_query_dataset.data_set_name" 
+              value={contract.big_query_dataset.data_set_name} 
+              onChange={handleChange} 
+              required
+              disabled={!contract.big_query_dataset.project_id}
+            >
+              <option value="">Select Dataset Name</option>
+              {datasets.map((dataset, index) => (
+                <option key={index} value={dataset.data_set_name}>
+                  {dataset.data_set_name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-section">
             <h3>Physical Tables</h3>

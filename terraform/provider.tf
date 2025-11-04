@@ -1,12 +1,13 @@
-provider "google" {
-  project = var.project_id_data
-  region  = var.region
-  alias = "data-plane"
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.0"
+    }
+  }
 }
 
 provider "google" {
-  project = var.project_id_compute
+  project = var.project_id
   region  = var.region
-  alias = "compute-plane"
 }
-

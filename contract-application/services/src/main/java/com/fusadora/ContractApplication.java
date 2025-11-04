@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 @SpringBootApplication
-@EntityScan(basePackages = "org.fusadora.model.datacontract") // Adjust the package name as needed
+@EntityScan(basePackages = "com.fusadora.model.datacontract") // Adjust the package name as needed
 public class ContractApplication {
 
     public static void main(String[] args) {
