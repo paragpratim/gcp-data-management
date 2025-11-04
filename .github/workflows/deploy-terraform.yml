@@ -52,8 +52,17 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Set gcloud project
-        run: gcloud config set project ${{ env.PROJECT_ID }}
+      - name: Configure gcloud for target project
+        run: |
+          # Set the target project explicitly
+          gcloud config set project ${{ env.PROJECT_ID }}
+          
+          # Verify the project is set correctly
+          echo "Current gcloud project: $(gcloud config get-value project)"
+          
+          # Set additional environment variables to override any defaults
+          echo "GOOGLE_CLOUD_PROJECT=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+          echo "CLOUDSDK_CORE_PROJECT=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -77,22 +86,19 @@ jobs:
         id: plan
         working-directory: terraform
         run: |
+          set +e  # Don't exit on error
           terraform plan -detailed-exitcode -no-color -out=tfplan
-        continue-on-error: true
-
-      - name: Set plan exit code
-        id: plan-status
-        run: |
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
-
-      - name: Check if plan failed
-        if: steps.plan.outcome == 'failure'
-        run: |
-          exit_code=${{ steps.plan-status.outputs.exitcode }}
-          if [ "$exit_code" != "2" ]; then
-            echo "❌ Terraform plan failed with exit code: $exit_code"
+          PLAN_EXIT_CODE=$?
+          echo "exitcode=$PLAN_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Only fail if exit code is 1 (actual error)
+          if [ $PLAN_EXIT_CODE -eq 1 ]; then
+            echo "❌ Terraform plan failed"
             exit 1
           fi
+          
+          # Exit codes 0 (no changes) and 2 (changes detected) are success
+          echo "✅ Terraform plan completed with exit code: $PLAN_EXIT_CODE"
 
       - name: Comment PR with Plan
         if: github.event_name == 'pull_request'
@@ -135,7 +141,8 @@ jobs:
         if: |
           github.ref == 'refs/heads/main' && 
           (github.event_name == 'push' || 
-           (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
+           (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')) &&
+          steps.plan.outputs.exitcode == '2'
         working-directory: terraform
         run: |
           terraform apply -auto-approve tfplan
@@ -156,6 +163,7 @@ jobs:
         working-directory: terraform
         run: |
           echo "## Infrastructure Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Target Project:** ${{ env.PROJECT_ID }}" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Service Account:** $(terraform output -raw service_account_email 2>/dev/null || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Artifact Registry:** $(terraform output -raw artifact_registry_repository 2>/dev/null || echo 'N/A')" >> $GITHUB_STEP_SUMMARY
           echo "🔐 **IAP Configured:** Yes" >> $GITHUB_STEP_SUMMARY
