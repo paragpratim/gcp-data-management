@@ -78,7 +78,21 @@ jobs:
         working-directory: terraform
         run: |
           terraform plan -detailed-exitcode -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Set plan exit code
+        id: plan-status
+        run: |
           echo "exitcode=$?" >> $GITHUB_OUTPUT
+
+      - name: Check if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: |
+          exit_code=${{ steps.plan-status.outputs.exitcode }}
+          if [ "$exit_code" != "2" ]; then
+            echo "❌ Terraform plan failed with exit code: $exit_code"
+            exit 1
+          fi
 
       - name: Comment PR with Plan
         if: github.event_name == 'pull_request'

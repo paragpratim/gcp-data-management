@@ -46,38 +46,38 @@ resource "google_iap_client" "contract_app_client" {
   brand        = google_iap_brand.project_brand.name
 }
 
-# Data source to get the Cloud Run service (deployed via GitHub Actions)
-data "google_cloud_run_service" "contract_app" {
-  name     = "contract-app"
-  location = var.region
+# # Data source to get the Cloud Run service (deployed via GitHub Actions)
+# data "google_cloud_run_service" "contract_app" {
+#   name     = "contract-app"
+#   location = var.region
 
-  depends_on = [google_artifact_registry_repository.data_management]
-}
+#   depends_on = [google_artifact_registry_repository.data_management]
+# }
 
-# Enable IAP on Cloud Run service
-resource "google_iap_web_iam_binding" "contract_app_access" {
-  project = var.project_id
-  role    = "roles/iap.httpsResourceAccessor"
+# # Enable IAP on Cloud Run service
+# resource "google_iap_web_iam_binding" "contract_app_access" {
+#   project = var.project_id
+#   role    = "roles/iap.httpsResourceAccessor"
 
-  members = var.iap_members
+#   members = var.iap_members
 
-  depends_on = [
-    google_project_service.iap_api,
-    google_iap_client.contract_app_client
-  ]
-}
+#   depends_on = [
+#     google_project_service.iap_api,
+#     google_iap_client.contract_app_client
+#   ]
+# }
 
-# Configure IAP settings for the Cloud Run service
-resource "google_iap_web_type_compute_iam_binding" "contract_app_iap_invoker" {
-  project = var.project_id
-  role    = "roles/run.invoker"
+# # Configure IAP settings for the Cloud Run service
+# resource "google_iap_web_type_compute_iam_binding" "contract_app_iap_invoker" {
+#   project = var.project_id
+#   role    = "roles/run.invoker"
 
-  members = [
-    "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
-  ]
-}
+#   members = [
+#     "serviceAccount:service-${data.google_project.project.number}@gcp-sa-iap.iam.gserviceaccount.com"
+#   ]
+# }
 
-# Data source to get project number
-data "google_project" "project" {
-  project_id = var.project_id
-}
+# # Data source to get project number
+# data "google_project" "project" {
+#   project_id = var.project_id
+# }
