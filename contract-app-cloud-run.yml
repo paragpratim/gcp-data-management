@@ -1,0 +1,82 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: contract-app
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "10"
+        autoscaling.knative.dev/minScale: "0"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      # Frontend container (main)
+      - name: contract-ui
+        image: us-central1-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-ui:latest
+        ports:
+        - name: http1
+          containerPort: 80
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: REACT_APP_API_URL
+          value: "http://localhost:8080"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        startupProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 0
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 0
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+      
+      # Backend sidecar container
+      - name: contract-backend
+        image: us-central1-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-application:latest
+        ports:
+        - name: backend
+          containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "production"
+        resources:
+          limits:
+            cpu: "1000m"
+            memory: "512Mi"
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          periodSeconds: 10
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 0
+          timeoutSeconds: 10
+          periodSeconds: 30
+          failureThreshold: 3
+      
+      serviceAccountName: svc-cr-data-contract@gcp-data-management-e0e9.iam.gserviceaccount.com
