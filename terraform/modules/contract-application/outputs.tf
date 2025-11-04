@@ -18,14 +18,14 @@ output "artifact_registry_repository" {
   value       = google_artifact_registry_repository.data_management.name
 }
 
-output "iap_client_id" {
-  description = "IAP OAuth2 client ID"
-  value       = google_iap_client.contract_app_client.client_id
-  sensitive   = true
-}
+# output "iap_client_id" {
+#   description = "IAP OAuth2 client ID"
+#   value       = google_iap_client.contract_app_client.client_id
+#   sensitive   = true
+# }
 
-output "iap_client_secret" {
-  description = "IAP OAuth2 client secret"
-  value       = google_iap_client.contract_app_client.secret
-  sensitive   = true
-}
+# output "iap_client_secret" {
+#   description = "IAP OAuth2 client secret"
+#   value       = google_iap_client.contract_app_client.secret
+#   sensitive   = true
+# }
