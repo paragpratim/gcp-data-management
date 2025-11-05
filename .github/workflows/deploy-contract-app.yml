@@ -44,6 +44,7 @@ jobs:
           workload_identity_provider: 'projects/${{ secrets.DEPLOYMENT_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL_NAME }}/providers/${{ secrets.WIF_PROVIDER_NAME }}'
           service_account: ${{ secrets.DEPLOYMENT_SVC }}
           audience: ${{ secrets.WIF_AUDIENCE }}
+          project_id: ${{ env.PROJECT_ID }}  # Set target project directly in auth
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2

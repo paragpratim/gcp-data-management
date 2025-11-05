@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: contract-app
   annotations:
-    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress: internal-and-cloud-load-balancing
     run.googleapis.com/execution-environment: gen2
 spec:
   template:
