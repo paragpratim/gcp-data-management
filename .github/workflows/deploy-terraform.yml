@@ -26,8 +26,7 @@ env:
   REGION: europe-west4
   TF_VAR_project_id: gcp-data-management-e0e9
   TF_VAR_region: europe-west4
-  TF_VAR_support_email: paragpratim@fusadora.com
-  TF_VAR_iap_members: '["domain:fusadora.com","user:paragpratim@fusadora.com"]'
+  TF_VAR_authorized_members: '["domain:fusadora.com","user:paragpratim@fusadora.com"]'
 
 jobs:
   terraform:

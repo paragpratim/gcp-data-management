@@ -21,3 +21,9 @@ variable "iap_members" {
   type        = list(string)
   default     = []
 }
+
+variable "authorized_members" {
+  description = "List of members authorized to invoke the Cloud Run service"
+  type        = list(string)
+  default     = []
+}
