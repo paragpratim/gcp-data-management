@@ -4,9 +4,15 @@ tasks:
   all:
     desc: Build backend, build docker images, and run docker compose
     cmds:
+      - task: install-jdbc-driver
       - task: build-backend
       - task: docker-build
       - task: docker-up
+
+  install-jdbc-driver:
+    desc: Install BigQuery JDBC driver to local Maven repo
+    cmds:
+      - cd contract-application && mvn install:install-file -Dfile=services/local-repo/GoogleBigQueryJDBC42-1.5.4.1008.jar -DgroupId=com.simba.googlebigquery.jdbc -DartifactId=GoogleBigQueryJDBC42 -Dversion=1.5.4.1008 -Dpackaging=jar
 
   build-backend:
     desc: Maven clean install for backend

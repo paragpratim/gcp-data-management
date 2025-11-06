@@ -55,6 +55,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: contract-ui/package-lock.json
 
+      - name: Install BigQuery JDBC Driver
+        run: |
+          cd contract-application
+          mvn install:install-file \
+            -Dfile=services/local-repo/GoogleBigQueryJDBC42-1.5.4.1008.jar \
+            -DgroupId=com.simba.googlebigquery.jdbc \
+            -DartifactId=GoogleBigQueryJDBC42 \
+            -Dversion=1.5.4.1008 \
+            -Dpackaging=jar
+
       - name: Build Java backend
         env:
           SPRING_PROFILES_ACTIVE: prod
