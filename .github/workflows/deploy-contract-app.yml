@@ -71,7 +71,7 @@ jobs:
           SPRING_PROFILES_ACTIVE: prod
         run: |
           cd contract-application
-          ./mvnw clean install -pl services -Dspring.profiles.active=prod
+          ./mvnw clean install -Dspring.profiles.active=prod
 
       - name: Build React frontend
         run: |

@@ -17,7 +17,7 @@ tasks:
   build-backend:
     desc: Maven clean install for backend
     cmds:
-      - cd contract-application && ./mvnw clean install -pl services
+      - cd contract-application && ./mvnw clean install
 
   build-frontend:
     desc: Install and build React frontend
