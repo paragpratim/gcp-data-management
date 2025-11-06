@@ -451,4 +451,3 @@ out/
 *.class
 *.war
 *.ear
-**/.mvn/*
