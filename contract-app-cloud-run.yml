@@ -24,7 +24,7 @@ spec:
             bucketName: liquibase-log-gcp-data-management-e0e9
             mountOptions: "implicit-dirs"
       containers:
-      # Frontend container (main)
+      # Frontend container (main) - ONLY this one has exposed port
       - name: contract-ui
         image: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app/contract-ui:latest
         ports:
@@ -60,17 +60,17 @@ spec:
           periodSeconds: 240
           failureThreshold: 1
       
-      # Backend sidecar container
+      # Backend sidecar container - NO exposed port
       - name: contract-backend
         image: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app/contract-application:latest
-        ports:
-        - name: http1
-          containerPort: 8080
+        # ✅ REMOVED ports section - backend runs on localhost:8080 internally
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "production"
         - name: LIQUIBASE_LOG_PATH
           value: "/mnt/liquibase"
+        - name: SERVER_PORT
+          value: "8080"
         resources:
           limits:
             cpu: "1000m"
