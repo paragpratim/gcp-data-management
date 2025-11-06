@@ -449,7 +449,6 @@ out/
 # Maven and Java build artifacts
 **/target/
 *.class
-*.jar
 *.war
 *.ear
-ingestion-code/.mvn/*
+**/.mvn/*
