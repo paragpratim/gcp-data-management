@@ -16,7 +16,7 @@ on:
 env:
   PROJECT_ID: gcp-data-management-e0e9
   REGION: europe-west4
-  ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/contract-app
+  ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app
   SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID: gcp-data-management-e0e9
 
 jobs:
