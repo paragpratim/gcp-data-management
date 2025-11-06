@@ -37,7 +37,7 @@ export default function UpdateContract() {
     } else {
       setDatasets([]);
     }
-  }, [contract && contract.big_query_dataset && contract.big_query_dataset.project_id]);
+  }, [contract]); 
 
   const handleLoad = () => {
     if (!selectedId) return;
@@ -183,7 +183,6 @@ export default function UpdateContract() {
       },
       _fieldsMarked: true // Prevents re-marking on every update
     });
-    // eslint-disable-next-line
   }, [contract]);
 
   const handleSubmit = async (e) => {
