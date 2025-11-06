@@ -4,7 +4,6 @@ metadata:
   name: contract-app
   annotations:
     run.googleapis.com/ingress: internal-and-cloud-load-balancing
-    run.googleapis.com/execution-environment: gen2
 spec:
   template:
     metadata:
@@ -63,7 +62,6 @@ spec:
       # Backend sidecar container - NO exposed port
       - name: contract-backend
         image: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app/contract-application:latest
-        # ✅ REMOVED ports section - backend runs on localhost:8080 internally
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "production"
