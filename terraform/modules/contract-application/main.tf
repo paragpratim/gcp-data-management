@@ -13,7 +13,8 @@ resource "google_project_service" "required_apis" {
     "logging.googleapis.com",
     "artifactregistry.googleapis.com",
     "run.googleapis.com",
-    "iap.googleapis.com"
+    "iap.googleapis.com",
+    "storage.googleapis.com"
   ])
 
   service            = each.value
@@ -41,6 +42,21 @@ resource "google_artifact_registry_repository" "data_management" {
   repository_id = "data-management"
   description   = "Docker repository for data management applications"
   format        = "DOCKER"
+
+  depends_on = [google_project_service.required_apis]
+}
+
+# Create GCS bucket for Liquibase logs
+resource "google_storage_bucket" "liquibase_log" {
+  name     = "liquibase-log-${var.project_id}"
+  location = var.region
+
+  versioning {
+    enabled = true
+  }
+
+  # Set uniform bucket-level access
+  uniform_bucket_level_access = true
 
   depends_on = [google_project_service.required_apis]
 }
