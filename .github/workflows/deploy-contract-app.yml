@@ -57,13 +57,14 @@ jobs:
 
       - name: Install BigQuery JDBC Driver
         run: |
-          cd contract-application
+          cd contract-application/services/local-repo
           mvn install:install-file \
-            -Dfile=services/local-repo/GoogleBigQueryJDBC42-1.5.4.1008.jar \
+            -Dfile=GoogleBigQueryJDBC42-1.5.4.1008.jar \
             -DgroupId=com.simba.googlebigquery.jdbc \
             -DartifactId=GoogleBigQueryJDBC42 \
-            -Dversion=1.5.4.1008 \
-            -Dpackaging=jar
+            -Dversion=1.5.4 \
+            -Dpackaging=jar \
+            -DgeneratePom=true
 
       - name: Build Java backend
         env:
