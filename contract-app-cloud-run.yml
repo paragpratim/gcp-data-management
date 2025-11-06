@@ -26,7 +26,7 @@ spec:
       containers:
       # Frontend container (main)
       - name: contract-ui
-        image: us-central1-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-ui:latest
+        image: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app/contract-ui:latest
         ports:
         - name: http1
           containerPort: 80
@@ -62,9 +62,9 @@ spec:
       
       # Backend sidecar container
       - name: contract-backend
-        image: us-central1-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-application:latest
+        image: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app/contract-application:latest
         ports:
-        - name: backend
+        - name: http1
           containerPort: 8080
         env:
         - name: SPRING_PROFILES_ACTIVE
