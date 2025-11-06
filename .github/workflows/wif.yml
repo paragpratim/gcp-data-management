@@ -1,4 +1,4 @@
-name: Test WIF
+name: Test_WIF
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Build, Push and Deploy Contract Application
+name: Build_Deploy_Contract_Application
 
 # on:
 #   push:

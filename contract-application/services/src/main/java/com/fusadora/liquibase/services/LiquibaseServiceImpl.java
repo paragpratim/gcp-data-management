@@ -16,7 +16,7 @@ import java.util.Optional;
 @Service
 public class LiquibaseServiceImpl implements LiquibaseService {
 
-    private static final String LIQUIBASE_PATH = "liquibase";
+    private static final String LIQUIBASE_PATH = "/mnt/liquibase";
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LiquibaseServiceImpl.class);
 
     @Autowired

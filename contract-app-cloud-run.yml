@@ -16,6 +16,13 @@ spec:
     spec:
       containerConcurrency: 80
       timeoutSeconds: 300
+      volumes:
+      - name: liquibase-storage
+        csi:
+          driver: gcsfuse.run.googleapis.com
+          volumeAttributes:
+            bucketName: liquibase-log-gcp-data-management-e0e9
+            mountOptions: "implicit-dirs"
       containers:
       # Frontend container (main)
       - name: contract-ui
@@ -32,6 +39,10 @@ spec:
           limits:
             cpu: "500m"
             memory: "256Mi"
+        volumeMounts:
+        - name: liquibase-storage
+          mountPath: /mnt/liquibase
+          readOnly: false
         startupProbe:
           httpGet:
             path: /
@@ -58,10 +69,16 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "production"
+        - name: LIQUIBASE_LOG_PATH
+          value: "/mnt/liquibase"
         resources:
           limits:
             cpu: "1000m"
             memory: "512Mi"
+        volumeMounts:
+        - name: liquibase-storage
+          mountPath: /mnt/liquibase
+          readOnly: false
         startupProbe:
           httpGet:
             path: /actuator/health
