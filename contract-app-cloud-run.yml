@@ -69,6 +69,10 @@ spec:
           value: "/mnt/liquibase"
         - name: SERVER_PORT
           value: "8080"
+        - name: SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID
+          value: "${SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID}"
+        - name: SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID
+          value: "${SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID}"
         resources:
           limits:
             cpu: "1000m"
