@@ -10,7 +10,7 @@ services:
   frontend:
     build: ./contract-ui
     ports:
-      - "3000:80"
+      - "80:80"
     networks:
       - appnet
 
