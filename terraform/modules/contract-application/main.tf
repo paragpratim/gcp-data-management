@@ -61,3 +61,13 @@ resource "google_storage_bucket" "liquibase_log" {
 
   depends_on = [google_project_service.required_apis]
 }
+
+# Create Firestore database in Native mode
+resource "google_firestore_database" "contract_database" {
+  name        = var.datastore_database_id
+  project     = var.project_id
+  location_id = var.region
+  type        = "DATASTORE_MODE"
+
+  depends_on = [google_project_service.required_apis]
+}

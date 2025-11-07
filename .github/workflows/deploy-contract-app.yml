@@ -18,6 +18,7 @@ env:
   REGION: europe-west4
   ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}/data-management/contract-app
   SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
+  SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID: ${{ secrets.DATASTORE_DATABASE_ID }}
 
 jobs:
   build-and-deploy:
