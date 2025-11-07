@@ -71,3 +71,12 @@ resource "google_firestore_database" "contract_database" {
 
   depends_on = [google_project_service.required_apis]
 }
+
+# Grant IAP access to domain
+resource "google_project_iam_member" "iap_domain_access" {
+  project = var.project_id
+  role    = "roles/iap.httpsResourceAccessor"
+  member  = "domain:${var.my_domain}"
+
+  depends_on = [google_project_service.required_apis]
+}

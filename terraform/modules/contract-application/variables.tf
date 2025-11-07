@@ -15,3 +15,9 @@ variable "datastore_database_id" {
   type        = string
   default     = ""
 }
+
+variable "my_domain" {
+  description = "The domain to grant IAP access"
+  type        = string
+  default     = ""
+}
