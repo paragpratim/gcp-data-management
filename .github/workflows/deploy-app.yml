@@ -13,7 +13,6 @@ env:
   PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   REGION: europe-west4
   ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}/data-management/contract-app
-  DOMAIN: ${{ secrets.MY_DOMAIN }}
   SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID: ${{ secrets.DATASTORE_DATABASE_ID }}
 
@@ -75,7 +74,7 @@ jobs:
           echo "Updated YAML file:"
           cat contract-app-cloud-run-deploy.yml
 
-      - name: Deploy to Cloud Run with
+      - name: Deploy to Cloud Run
         run: |
           echo "Deploying contract-app..."
           gcloud run services replace contract-app-cloud-run-deploy.yml --region=${{ env.REGION }}

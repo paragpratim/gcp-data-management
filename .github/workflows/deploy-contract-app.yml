@@ -43,6 +43,10 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Install gcloud beta components
+        run: |
+          gcloud components install beta --quiet
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -110,13 +114,26 @@ jobs:
           
           echo "Updated YAML file:"
           cat contract-app-cloud-run-deploy.yml
-        env:
-          SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID: ${{ env.SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID }}
-          SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID: ${{ env.SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID }}
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run services replace contract-app-cloud-run.yml --region=${{ env.REGION }}
+
+      - name: Configure Cloud Run for IAP
+        run: |
+          echo "Enabling IAP for contract-app..."
+          gcloud beta run services update contract-app \
+          --region=${{ env.REGION }} \
+          --iap
+
+          echo "Getting project number..."
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+
+          echo "Grant invoker permission to the IAP service agent..."
+          gcloud run services add-iam-policy-binding contract-app \
+            --region=${{ env.REGION }} \
+            --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-iap.iam.gserviceaccount.com" \
+            --role="roles/run.invoker"
 
       - name: Get service URL
         id: get-url
