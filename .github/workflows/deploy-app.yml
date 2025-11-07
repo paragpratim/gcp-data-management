@@ -91,7 +91,7 @@ jobs:
           PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
 
           echo "Grant invoker permission to the IAP service agent..."
-          gcloud beta run services add-iam-policy-binding contract-app \
+          gcloud run services add-iam-policy-binding contract-app \
             --region=${{ env.REGION }} \
             --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-iap.iam.gserviceaccount.com" \
             --role="roles/run.invoker"
