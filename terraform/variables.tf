@@ -9,9 +9,3 @@ variable "region" {
   type        = string
   default     = ""
 }
-
-variable "authorized_members" {
-  description = "List of members authorized to invoke the Cloud Run service"
-  type        = list(string)
-  default     = []
-}

@@ -10,20 +10,3 @@ variable "region" {
   default     = ""
 }
 
-variable "support_email" {
-  description = "Support email for OAuth consent screen"
-  type        = string
-  default     = ""
-}
-
-variable "iap_members" {
-  description = "List of members who can access the application through IAP"
-  type        = list(string)
-  default     = []
-}
-
-variable "authorized_members" {
-  description = "List of members authorized to invoke the Cloud Run service"
-  type        = list(string)
-  default     = []
-}

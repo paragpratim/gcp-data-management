@@ -10,6 +10,7 @@ resource "google_project_service" "required_apis" {
   for_each = toset([
     "bigquery.googleapis.com",
     "firestore.googleapis.com",
+    "datastore.googleapis.com",
     "logging.googleapis.com",
     "artifactregistry.googleapis.com",
     "run.googleapis.com",
@@ -60,14 +61,3 @@ resource "google_storage_bucket" "liquibase_log" {
 
   depends_on = [google_project_service.required_apis]
 }
-
-# # Restrict Cloud Run service access to specific users
-# resource "google_cloud_run_service_iam_binding" "contract_app_access" {
-#   location = var.region
-#   service  = "contract-app"
-#   role     = "roles/run.invoker"
-
-#   members = var.authorized_members
-
-#   depends_on = [google_project_service.required_apis]
-# }

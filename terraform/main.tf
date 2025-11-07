@@ -4,6 +4,4 @@ module "contract_application" {
 
   project_id = var.project_id
   region     = var.region
-
-  authorized_members = var.authorized_members
 }
