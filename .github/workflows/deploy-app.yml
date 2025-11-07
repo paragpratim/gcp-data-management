@@ -12,7 +12,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   REGION: europe-west4
-  ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}/data-management
+  ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}/data-management/contract-app
   DOMAIN: ${{ secrets.MY_DOMAIN }}
 
 jobs:
