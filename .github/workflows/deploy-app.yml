@@ -71,23 +71,25 @@ jobs:
           echo "Updated YAML file:"
           cat contract-app-cloud-run-deploy.yml
 
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run with
         run: |
           echo "Deploying contract-app..."
           gcloud run services replace contract-app-cloud-run-deploy.yml --region=${{ env.REGION }}
 
-      - name: Configure Cloud Run access
+      - name: Configure Cloud Run for IAP
         run: |
-          # Remove public access
-          gcloud run services remove-iam-policy-binding contract-app \
+          echo "Enabling IAP for contract-app..."
+          gcloud beta run services update contract-app \
+          --region=${{ env.REGION }} \
+          --iap
+
+          echo "Getting project number..."
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+
+          echo "Grant invoker permission to the IAP service agent..."
+          gcloud beta run services add-iam-policy-binding contract-app \
             --region=${{ env.REGION }} \
-            --member="allUsers" \
-            --role="roles/run.invoker" || true
-          
-          # Add specific users/domain
-          gcloud run services add-iam-policy-binding contract-app \
-            --region=${{ env.REGION }} \
-            --member="domain:${{ env.MY_DOMAIN }}" \
+            --member="serviceAccount:service-${PROJECT_NUMBER}@gcp-sa-iap.iam.gserviceaccount.com" \
             --role="roles/run.invoker"
 
       - name: Get service URL
