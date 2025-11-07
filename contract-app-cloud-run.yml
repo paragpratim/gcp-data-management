@@ -46,19 +46,19 @@ spec:
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 0
-          timeoutSeconds: 240
-          periodSeconds: 240
-          failureThreshold: 1
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          periodSeconds: 5
+          failureThreshold: 30
         livenessProbe:
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 0
-          timeoutSeconds: 240
-          periodSeconds: 240
-          failureThreshold: 1
-      
+          initialDelaySeconds: 10
+          timeoutSeconds: 3
+          periodSeconds: 30
+          failureThreshold: 3
+
       # Backend sidecar container - NO exposed port
       - name: contract-backend
         image: europe-west4-docker.pkg.dev/gcp-data-management-e0e9/data-management/contract-app/contract-application:latest
@@ -89,7 +89,7 @@ spec:
           httpGet:
             path: /actuator/health
             port: 8080
-          initialDelaySeconds: 0
+          initialDelaySeconds: 45
           timeoutSeconds: 10
           periodSeconds: 30
           failureThreshold: 3

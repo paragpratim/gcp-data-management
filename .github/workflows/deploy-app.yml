@@ -1,0 +1,112 @@
+name: Deploy_Contract_Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+        type: string
+
+env:
+  PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
+  REGION: europe-west4
+  ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}/data-management
+  DOMAIN: ${{ secrets.MY_DOMAIN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/${{ secrets.DEPLOYMENT_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL_NAME }}/providers/${{ secrets.WIF_PROVIDER_NAME }}'
+          service_account: ${{ secrets.DEPLOYMENT_SVC }}
+          audience: ${{ secrets.WIF_AUDIENCE }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set image tag
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+          fi
+          echo "Deploying with image tag: $IMAGE_TAG"
+
+      - name: Verify images exist
+        run: |
+          echo "Checking if images exist..."
+          gcloud container images describe ${{ env.ARTIFACT_REGISTRY }}/contract-application:${{ env.IMAGE_TAG }} || exit 1
+          gcloud container images describe ${{ env.ARTIFACT_REGISTRY }}/contract-ui:${{ env.IMAGE_TAG }} || exit 1
+          echo "✅ Images verified"
+
+      - name: Update Cloud Run service YAML with image tags
+        run: |
+          # Create a copy of the YAML file with the correct image tags
+          cp contract-app-cloud-run.yml contract-app-cloud-run-deploy.yml
+          
+          # Update image tags
+          sed -i "s|contract-application:latest|contract-application:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
+          sed -i "s|contract-ui:latest|contract-ui:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
+          
+          echo "Updated YAML file:"
+          cat contract-app-cloud-run-deploy.yml
+
+      - name: Deploy to Cloud Run
+        run: |
+          echo "Deploying contract-app..."
+          gcloud run services replace contract-app-cloud-run-deploy.yml --region=${{ env.REGION }}
+
+      - name: Configure Cloud Run access
+        run: |
+          # Remove public access
+          gcloud run services remove-iam-policy-binding contract-app \
+            --region=${{ env.REGION }} \
+            --member="allUsers" \
+            --role="roles/run.invoker" || true
+          
+          # Add specific users/domain
+          gcloud run services add-iam-policy-binding contract-app \
+            --region=${{ env.REGION }} \
+            --member="domain:${{ env.MY_DOMAIN }}" \
+            --role="roles/run.invoker"
+
+      - name: Get service URL
+        id: get-url
+        run: |
+          SERVICE_URL=$(gcloud run services describe contract-app --region=${{ env.REGION }} --format="value(status.url)")
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+          echo "🚀 Service deployed at: $SERVICE_URL"
+
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "🏷️ **Image Tag:** \`${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Backend Image:** \`${{ env.ARTIFACT_REGISTRY }}/contract-application:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Frontend Image:** \`${{ env.ARTIFACT_REGISTRY }}/contract-ui:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **Service URL:** ${{ steps.get-url.outputs.SERVICE_URL }}" >> $GITHUB_STEP_SUMMARY
+
+  post-deploy:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Notify deployment success
+        run: |
+          echo "🎉 Contract Application successfully deployed!"
+          echo "Service URL: ${{ needs.deploy.outputs.SERVICE_URL }}"

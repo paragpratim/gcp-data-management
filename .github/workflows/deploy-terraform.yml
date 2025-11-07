@@ -22,11 +22,11 @@ on:
         - destroy
 
 env:
-  PROJECT_ID: gcp-data-management-e0e9
+  PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   REGION: europe-west4
-  TF_VAR_project_id: gcp-data-management-e0e9
+  TF_VAR_project_id: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   TF_VAR_region: europe-west4
-  TF_VAR_authorized_members: '["domain:fusadora.com","user:paragpratim@fusadora.com"]'
+  TF_VAR_authorized_members: '["domain:${{ secrets.MY_DOMAIN }}","user:paragpratim@${{ secrets.MY_DOMAIN }}"]'
 
 jobs:
   terraform:
