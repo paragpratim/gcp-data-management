@@ -56,20 +56,20 @@ jobs:
           gcloud container images describe ${{ env.ARTIFACT_REGISTRY }}/contract-ui:${{ env.IMAGE_TAG }} || exit 1
           echo "✅ Images verified"
 
-      - name: Update Cloud Run service YAML with environment variables and image tags
+      - name: Update Cloud Run service YAML with image tags
         run: |
-          # Update image tags
-          sed -i "s|contract-application:latest|contract-application:${{ github.sha }}|g" contract-app-cloud-run.yml
-          sed -i "s|contract-ui:latest|contract-ui:${{ github.sha }}|g" contract-app-cloud-run.yml
+          # Create a copy of the YAML file with the correct image tags
+          cp contract-app-cloud-run.yml contract-app-cloud-run-deploy.yml
           
+          # Update image tags
+          sed -i "s|contract-application:latest|contract-application:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
+          sed -i "s|contract-ui:latest|contract-ui:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
+
           # Substitute environment variables and create deployment file
           envsubst < contract-app-cloud-run.yml > contract-app-cloud-run-deploy.yml
           
           echo "Updated YAML file:"
           cat contract-app-cloud-run-deploy.yml
-        env:
-          SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID: ${{ env.SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID }}
-          SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID: ${{ env.SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID }}
 
       - name: Deploy to Cloud Run
         run: |
