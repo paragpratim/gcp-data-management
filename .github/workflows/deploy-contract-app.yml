@@ -105,9 +105,12 @@ jobs:
 
       - name: Update Cloud Run service YAML with environment variables and image tags
         run: |
+          # Create a copy of the YAML file with the correct image tags
+          cp contract-app-cloud-run.yml contract-app-cloud-run-deploy.yml
+
           # Update image tags
-          sed -i "s|contract-application:latest|contract-application:${{ github.sha }}|g" contract-app-cloud-run.yml
-          sed -i "s|contract-ui:latest|contract-ui:${{ github.sha }}|g" contract-app-cloud-run.yml
+          sed -i "s|contract-application:latest|contract-application:${{ github.sha }}|g" contract-app-cloud-run-deploy.yml
+          sed -i "s|contract-ui:latest|contract-ui:${{ github.sha }}|g" contract-app-cloud-run-deploy.yml
           
           # Substitute environment variables and create deployment file
           envsubst < contract-app-cloud-run.yml > contract-app-cloud-run-deploy.yml
@@ -117,7 +120,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run services replace contract-app-cloud-run.yml --region=${{ env.REGION }}
+          gcloud run services replace contract-app-cloud-run-deploy.yml --region=${{ env.REGION }}
 
       - name: Configure Cloud Run for IAP
         run: |
