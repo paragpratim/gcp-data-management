@@ -32,8 +32,6 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
-        - name: REACT_APP_API_URL
-          value: "http://127.0.0.1:8080"
         resources:
           limits:
             cpu: "500m"
