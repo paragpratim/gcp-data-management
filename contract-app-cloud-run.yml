@@ -33,7 +33,7 @@ spec:
         - name: NODE_ENV
           value: "production"
         - name: REACT_APP_API_URL
-          value: "http://localhost:8080"  # ✅ This should point to sidecar backend
+          value: "http://localhost:8080"
         resources:
           limits:
             cpu: "500m"
