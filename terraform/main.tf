@@ -6,4 +6,6 @@ module "contract_application" {
   region                = var.region
   datastore_database_id = var.datastore_database_id
   my_domain             = var.my_domain
+
+  bigquery_datasets = var.bigquery_datasets
 }

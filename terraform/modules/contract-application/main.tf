@@ -80,3 +80,37 @@ resource "google_project_iam_member" "iap_domain_access" {
 
   depends_on = [google_project_service.required_apis]
 }
+
+# Create BigQuery datasets
+resource "google_bigquery_dataset" "datasets" {
+  for_each = toset(var.bigquery_datasets)
+
+  dataset_id    = each.value
+  friendly_name = title(replace(each.value, "_", " "))
+  description   = "Dataset for ${replace(each.value, "_", " ")} data"
+  location      = var.region
+  project       = var.project_id
+
+  # Access controls
+  access {
+    role          = "OWNER"
+    user_by_email = google_service_account.contract_service_account.email
+  }
+
+  # Optional: Set default table expiration (in milliseconds)
+  default_table_expiration_ms = 604800000 # 7 days
+
+  # Optional: Set deletion policy
+  delete_contents_on_destroy = true
+
+  # Labels for organization
+  labels = {
+    project    = "data-contract"
+    managed_by = "terraform"
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.contract_service_account
+  ]
+}

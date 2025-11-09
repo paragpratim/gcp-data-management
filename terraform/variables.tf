@@ -21,3 +21,17 @@ variable "my_domain" {
   type        = string
   default     = ""
 }
+
+variable "bigquery_datasets" {
+  description = "List of BigQuery dataset IDs to create"
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for dataset in var.bigquery_datasets :
+      can(regex("^[a-zA-Z][a-zA-Z0-9_]*$", dataset))
+    ])
+    error_message = "Dataset names must start with a letter and contain only letters, numbers, and underscores."
+  }
+}

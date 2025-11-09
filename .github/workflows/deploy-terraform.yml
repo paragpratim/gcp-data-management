@@ -28,6 +28,7 @@ env:
   TF_VAR_region: europe-west4
   TF_VAR_datastore_database_id: ${{ secrets.DATASTORE_DATABASE_ID }}
   TF_VAR_my_domain: ${{ secrets.MY_DOMAIN }}
+  TF_VAR_bigquery_datasets: '["contract_data", "raw_data", "processed_data", "analytics", "staging"]'
 
 jobs:
   terraform:
