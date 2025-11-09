@@ -4,15 +4,10 @@ services:
     build: ./contract-application
     ports:
       - "8080:8080"
-    networks:
-      - appnet
+    network_mode: host
 
   frontend:
     build: ./contract-ui
     ports:
       - "80:80"
-    networks:
-      - appnet
-
-networks:
-  appnet:
+    network_mode: host
