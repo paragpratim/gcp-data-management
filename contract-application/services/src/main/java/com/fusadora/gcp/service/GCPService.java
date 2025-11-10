@@ -8,6 +8,7 @@ import java.util.List;
 public interface GCPService {
 
     public void addGCPProject(GCPProjects gcpProjectId);
+    public void deleteGCPProject(String gcpProjectId);
     public List<GCPProjects> getGCPProjects();
     public List<BigQueryDataset> getBigQueryDatasets(String gcpProjectId);
 }

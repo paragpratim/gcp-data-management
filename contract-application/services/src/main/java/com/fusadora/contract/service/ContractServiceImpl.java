@@ -1,6 +1,7 @@
 package com.fusadora.contract.service;
 
 import com.fusadora.contract.repository.ContractRepository;
+import com.fusadora.contract.utils.DataContractVersion;
 import com.fusadora.model.datacontract.DataContract;
 import com.fusadora.model.datacontract.PhysicalField;
 import com.fusadora.model.datacontract.PhysicalTable;
@@ -37,7 +38,7 @@ public class ContractServiceImpl implements ContractService {
             }
         }
 
-        contractRepository.save(contract);
+        contractRepository.save(DataContractVersion.createWithNextVersion(contract, contractRepository));
     }
 
     @Override
@@ -84,7 +85,7 @@ public class ContractServiceImpl implements ContractService {
             table.setCurrentChangeSetNumber(currentChangeSetNumber + 1);
         }
 
-        contractRepository.save(contract);
+        contractRepository.save(DataContractVersion.createWithNextVersion(contract, contractRepository));
     }
 
     @Override
