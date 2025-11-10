@@ -32,7 +32,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
                 LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(dataContract.get().getBigQueryDataset().getProject(),
                         dataContract.get().getBigQueryDataset().getDataset(),
                         LIQUIBASE_PATH,
-                        dataContract.get().getVersion());
+                        dataContract.get().getVersion().toString());
             } catch (IOException e) {
                 logger.error("Error generating Change Log", e);
             }
@@ -43,7 +43,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
                             dataContract.get().getBigQueryDataset().getProject(),
                             dataContract.get().getBigQueryDataset().getDataset(),
                             LIQUIBASE_PATH,
-                            dataContract.get().getVersion());
+                            dataContract.get().getVersion().toString());
                 }
             } catch (IOException e) {
                 logger.error("Error generating Change Set SQL files", e);
@@ -61,7 +61,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
             LiquibaseCommandUtil.updateBigQuery(dataContract.get().getBigQueryDataset().getProject(),
                     dataContract.get().getBigQueryDataset().getDataset(),
                     LIQUIBASE_PATH,
-                    dataContract.get().getVersion());
+                    dataContract.get().getVersion().toString());
         } else {
             throw new IllegalArgumentException("Contract not found with id: " + contractId);
         }

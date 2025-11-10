@@ -123,6 +123,12 @@ export default function UpdateContract() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // ✅ Prevent version field changes
+    if (name === "version") {
+      return; // Don't update version field
+    }
+    
     if (name.startsWith("big_query_dataset.")) {
       const field = name.split(".")[1];
       setContract({
@@ -222,7 +228,23 @@ export default function UpdateContract() {
           <div className="form-section">
             <h3>General Info</h3>
             <input type="text" name="data_product_name" placeholder="Data Product Name" value={contract.data_product_name} onChange={handleChange} required />
-            <input type="text" name="version" placeholder="Version" value={contract.version} onChange={handleChange} required />
+            {/* ✅ Make version field uneditable */}
+            <input 
+              type="text" 
+              name="version" 
+              placeholder="Version (Auto-generated on update)" 
+              value={`${contract.version} → New version will be auto-generated`}
+              onChange={handleChange} 
+              disabled={true}
+              style={{ 
+                backgroundColor: '#f0f8ff', 
+                cursor: 'not-allowed',
+                color: '#0066cc',
+                border: '2px solid #b3d9ff',
+                fontStyle: 'italic'
+              }}
+              title="A new version will be automatically generated when you update this contract"
+            />
             <input type="text" name="data_owner" placeholder="Data Owner" value={contract.data_owner} onChange={handleChange} required />
             <textarea
               name="description"

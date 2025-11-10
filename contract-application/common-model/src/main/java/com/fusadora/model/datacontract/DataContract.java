@@ -25,7 +25,7 @@ public class DataContract implements Serializable {
 
     @JsonProperty("version")
     @Field(name = "version")
-    private String version;
+    private Double version;
 
     @JsonProperty("data_owner")
     @Field(name = "data_owner")
@@ -62,11 +62,11 @@ public class DataContract implements Serializable {
         this.dataProductName = dataProductName;
     }
 
-    public String getVersion() {
+    public Double getVersion() {
         return version;
     }
 
-    public void setVersion(String version) {
+    public void setVersion(Double version) {
         this.version = version;
     }
 

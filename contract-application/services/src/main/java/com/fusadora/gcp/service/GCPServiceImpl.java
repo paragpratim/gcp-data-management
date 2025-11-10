@@ -28,12 +28,24 @@ public class GCPServiceImpl implements GCPService {
     }
 
     @Override
+    public void deleteGCPProject(String gcpProjectId) {
+        // TODO: Implement deletion logic if necessary
+    }
+
+    @Override
     public List<GCPProjects> getGCPProjects() {
         return StreamSupport.stream(gcpRepository.findAll().spliterator(), false).toList();
     }
 
     @Override
     public List<BigQueryDataset> getBigQueryDatasets(String gcpProjectId) {
+        // Dummy data for testing purposes
+        if (gcpProjectId.equals("dummy-project")) {
+            BigQueryDataset bigQueryDataset = new BigQueryDataset();
+            bigQueryDataset.setProject(gcpProjectId);
+            bigQueryDataset.setDataset("dummy-dataset");
+            return List.of(bigQueryDataset);
+        }
         List<BigQueryDataset> bigQueryDatasets = new java.util.ArrayList<>();
         try {
             BigQuery bigQuery = BigQueryOptions.newBuilder().setProjectId(gcpProjectId).build().getService();
