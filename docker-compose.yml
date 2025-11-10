@@ -1,13 +1,78 @@
 version: '3.8'
 services:
+  # Main container - Frontend Proxy (Cloud Run main container)
+  app:
+    build: ./contract-ui
+    container_name: contract-app-main
+    ports:
+      - "8080:8080"  # Backend port
+      - "80:80"      # Frontend port
+    networks:
+      - appnet
+    environment:
+      - NGINX_PORT=80
+      - PORT=80  # Cloud Run style PORT env var
+      - K_SERVICE=contract-app
+      - K_REVISION=contract-app-dev-001
+      - K_CONFIGURATION=contract-app
+    labels:
+      - "cloud-run.googleapis.com/service=contract-app"
+      - "cloud-run.googleapis.com/revision=contract-app-dev-001"
+      - "app=contract-app"
+      - "tier=frontend"
+      - "role=main"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Sidecar container - Backend Application
   backend:
     build: ./contract-application
-    ports:
-      - "8080:8080"
-    network_mode: host
+    container_name: contract-app-backend-sidecar
+    network_mode: "service:app"  # ✅ Share network with main container
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=dev
+      - PORT=8080
+      - K_SERVICE=contract-app
+      - K_REVISION=contract-app-dev-001
+    labels:
+      - "cloud-run.googleapis.com/service=contract-app"
+      - "cloud-run.googleapis.com/revision=contract-app-dev-001"
+      - "app=contract-app"
+      - "tier=backend"
+      - "role=sidecar"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
-  frontend:
-    build: ./contract-ui
-    ports:
-      - "80:80"
-    network_mode: host
+networks:
+  appnet:
+    driver: bridge
