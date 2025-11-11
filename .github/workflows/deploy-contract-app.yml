@@ -19,6 +19,7 @@ env:
   PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   REGION: europe-west4
   ARTIFACT_REGISTRY: europe-west4-docker.pkg.dev/${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}/data-management/contract-app
+  LIQUIBASE_LOG_BUCKET: ${{ secrets.LIQUIBASE_LOG_BUCKET }}
   SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
   SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID: ${{ secrets.DATASTORE_DATABASE_ID }}
 
@@ -126,14 +127,14 @@ jobs:
         run: |
           # Create a copy of the YAML file
           cp contract-app-cloud-run.yml contract-app-cloud-run-deploy.yml
-
-          # Update image tags
-          sed -i "s|contract-application:latest|contract-application:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
-          sed -i "s|contract-ui:latest|contract-ui:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
           
           # Substitute environment variables
           envsubst < contract-app-cloud-run-deploy.yml > contract-app-cloud-run-final.yml
           mv contract-app-cloud-run-final.yml contract-app-cloud-run-deploy.yml
+
+          # Update image tags
+          sed -i "s|contract-application:latest|contract-application:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
+          sed -i "s|contract-ui:latest|contract-ui:${{ env.IMAGE_TAG }}|g" contract-app-cloud-run-deploy.yml
           
           echo "Updated YAML file:"
           cat contract-app-cloud-run-deploy.yml
