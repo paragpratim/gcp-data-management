@@ -1,9 +1,0 @@
-databaseChangeLog:
-
-- include:
-    file: colors.sql
-    relativeToChangelogFile: true
-
-- include:
-    file: books.sql
-    relativeToChangelogFile: true
