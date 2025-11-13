@@ -1,9 +1,0 @@
-databaseChangeLog:
-
-- include:
-    file: user_data/userdatachangelog.yaml
-    relativeToChangelogFile: true
-- include:
-   file: inventory_data/inventorydatachangelog.yaml
-   relativeToChangelogFile: true
-
