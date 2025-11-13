@@ -17,15 +17,32 @@ class LiquibaseChangeSetUtilTest {
         PhysicalField field1 = new PhysicalField();
         field1.setName("id");
         field1.setType("INT64");
+        field1.setChangeSetNumber(1);
 
         PhysicalField field2 = new PhysicalField();
         field2.setName("name");
         field2.setType("STRING");
+        field2.setChangeSetNumber(1);
+
+        PhysicalField field3 = new PhysicalField();
+        field3.setName("address");
+        field3.setType("STRING");
+        field3.setChangeSetNumber(2);
+
+        PhysicalField field4 = new PhysicalField();
+        field4.setName("city");
+        field4.setType("STRING");
+        field4.setChangeSetNumber(2);
+
+        PhysicalField field5 = new PhysicalField();
+        field5.setName("country");
+        field5.setType("STRING");
+        field5.setChangeSetNumber(3);
 
         PhysicalTable table = new PhysicalTable();
         table.setName("test_table");
-        table.setPhysicalFields(Arrays.asList(field1, field2));
-        table.setCurrentChangeSetNumber(1);
+        table.setPhysicalFields(Arrays.asList(field1, field2, field3, field4, field5));
+        table.setCurrentChangeSetNumber(3);
 
         return table;
     }
@@ -40,6 +57,11 @@ class LiquibaseChangeSetUtilTest {
         assertTrue(sql.contains("id INT64"));
         assertTrue(sql.contains("name STRING"));
         assertTrue(sql.contains("--rollback DROP TABLE IF EXISTS dataset.test_table;"));
+
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS address STRING"));
+        assertTrue(sql.contains(";"));
+        assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS address;"));
     }
 
     @Test

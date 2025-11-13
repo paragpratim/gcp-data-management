@@ -4,6 +4,7 @@ import CreateContract from "./components/CreateContract";
 import ViewContract from "./components/ViewContract";
 import UpdateContract from "./components/UpdateContract";
 import AddProject from "./components/AddProject";
+import LiquibaseAdmin from "./components/LiquibaseAdmin";
 import "./styles.css";
 
 function App() {
@@ -19,12 +20,14 @@ function App() {
           <Link to="/view" className="ui-button ui-widget ui-corner-all">View Contract</Link>
           <Link to="/update" className="ui-button ui-widget ui-corner-all">Update Contract</Link>
           <Link to="/add-project" className="ui-button ui-widget ui-corner-all">Add Project</Link>
+          <Link to="/liquibase-admin" className="ui-button ui-widget ui-corner-all">Liquibase Admin</Link>
         </nav>
         <Routes>
           <Route path="/" element={<CreateContract />} />
           <Route path="/view" element={<ViewContract />} />
           <Route path="/update" element={<UpdateContract />} />
           <Route path="/add-project" element={<AddProject />} />
+          <Route path="/liquibase-admin" element={<LiquibaseAdmin />} />
         </Routes>
       </div>
     </Router>

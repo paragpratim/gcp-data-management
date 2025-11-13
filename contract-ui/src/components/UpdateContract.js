@@ -41,9 +41,57 @@ export default function UpdateContract() {
 
   const handleLoad = () => {
     if (!selectedId) return;
+    
+    setResult("Loading contract...");
+    
     fetch(API_CONFIG.BASE_URL + "/api/contracts/get/" + selectedId)
-      .then(res => res.json())
-      .then(data => setContract(data));
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log("Raw contract data:", data);
+        
+        // ✅ Ensure we have the right structure
+        if (!data.physical_model || !data.physical_model.physical_tables) {
+          console.error("Invalid contract structure:", data);
+          setResult("Error: Invalid contract structure");
+          return;
+        }
+        
+        // ✅ Mark existing tables and fields immediately when loading
+        const markedData = {
+          ...data,
+          physical_model: {
+            ...data.physical_model,
+            physical_tables: data.physical_model.physical_tables.map((table, index) => {
+              console.log(`Marking table ${index} as existing:`, table.table_name);
+              return {
+                ...table,
+                _existing: true, // Mark as existing
+                physical_fields: (table.physical_fields || []).map((field, fieldIndex) => {
+                  console.log(`Marking field ${fieldIndex} as existing:`, field.field_name);
+                  return {
+                    ...field,
+                    _existing: true // Mark as existing
+                  };
+                })
+              };
+            })
+          },
+          _fieldsMarked: true // Flag to prevent re-marking
+        };
+        
+        console.log("Marked contract data:", markedData);
+        setContract(markedData);
+        setResult("Contract loaded successfully");
+      })
+      .catch(err => {
+        console.error("Error loading contract:", err);
+        setResult("Error loading contract: " + err.message);
+      });
   };
 
   const addTable = () => {
@@ -57,7 +105,8 @@ export default function UpdateContract() {
             table_description: "",
             physical_fields: [],
             partitioning_fields: "",
-            clustering_fields: ""
+            clustering_fields: "",
+            _existing: false // ✅ Mark new tables as NOT existing
           }
         ]
       }
@@ -66,6 +115,16 @@ export default function UpdateContract() {
 
   const removeTable = (tIdx) => {
     const tables = [...contract.physical_model.physical_tables];
+    
+    // ✅ Better check for existing tables
+    console.log("Attempting to remove table:", tIdx, "Existing flag:", tables[tIdx]._existing);
+    
+    if (tables[tIdx]._existing === true) {
+      console.log("Cannot remove existing table");
+      setResult("Cannot delete existing tables. Only newly added tables can be removed.");
+      return; // Don't allow deletion of existing tables
+    }
+    
     tables.splice(tIdx, 1);
     setContract({
       ...contract,
@@ -80,7 +139,8 @@ export default function UpdateContract() {
       nested_fields: [],
       field_name: "",
       field_type: "",
-      field_description: ""
+      field_description: "",
+      _existing: false // ✅ Mark new fields as NOT existing
     });
     setContract({
       ...contract,
@@ -90,6 +150,13 @@ export default function UpdateContract() {
 
   const removeField = (tIdx, fIdx) => {
     const tables = [...contract.physical_model.physical_tables];
+    
+    // ✅ Check if field is existing
+    if (tables[tIdx].physical_fields[fIdx]._existing === true) {
+      setResult("Cannot delete existing fields. Only newly added fields can be removed.");
+      return;
+    }
+    
     tables[tIdx].physical_fields.splice(fIdx, 1);
     setContract({
       ...contract,
@@ -143,6 +210,13 @@ export default function UpdateContract() {
     } else if (name.startsWith("physical_tables.")) {
       const [, field, tIdx] = name.split(".");
       const tables = [...contract.physical_model.physical_tables];
+      
+      // ✅ Prevent editing table_name for existing tables
+      if (field === "table_name" && tables[tIdx]._existing === true) {
+        console.log("Cannot edit existing table name");
+        return; // Don't allow editing existing table names
+      }
+      
       tables[tIdx][field] = value;
       setContract({
         ...contract,
@@ -151,7 +225,10 @@ export default function UpdateContract() {
     } else if (name.startsWith("physical_fields.")) {
       const [, field, tIdx, fIdx] = name.split(".");
       // Prevent editing existing physical fields
-      if (contract.physical_model.physical_tables[tIdx].physical_fields[fIdx]._existing) return;
+      if (contract.physical_model.physical_tables[tIdx].physical_fields[fIdx]._existing === true) {
+        console.log("Cannot edit existing field");
+        return;
+      }
       const tables = [...contract.physical_model.physical_tables];
       tables[tIdx].physical_fields[fIdx][field] = value;
       setContract({
@@ -171,33 +248,31 @@ export default function UpdateContract() {
     }
   };
 
-  // Mark existing fields as non-editable when loaded
-  useEffect(() => {
-    if (!contract || contract._fieldsMarked) return;
-    const tables = contract.physical_model.physical_tables.map(table => ({
-      ...table,
-      physical_fields: table.physical_fields.map(field => ({
-        ...field,
-        _existing: true
-      }))
-    }));
-    setContract({
-      ...contract,
-      physical_model: {
-        ...contract.physical_model,
-        physical_tables: tables
-      },
-      _fieldsMarked: true // Prevents re-marking on every update
-    });
-  }, [contract]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(API_CONFIG.BASE_URL + "/api/contracts/update", {
+      // ✅ Clean the contract data before sending (remove internal flags)
+      const cleanContract = {
+        ...contract,
+        physical_model: {
+          physical_tables: contract.physical_model.physical_tables.map(table => {
+            const { _existing, ...cleanTable } = table;
+            return {
+              ...cleanTable,
+              physical_fields: (cleanTable.physical_fields || []).map(field => {
+                const { _existing: fieldExisting, ...cleanField } = field;
+                return cleanField;
+              })
+            };
+          })
+        }
+      };
+      delete cleanContract._fieldsMarked;
+
+      const res = await fetch(API_CONFIG.BASE_URL + `/api/contracts/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contract)
+        body: JSON.stringify(cleanContract)
       });
       const text = await res.text();
       try {
@@ -289,12 +364,92 @@ export default function UpdateContract() {
             <h3>Physical Tables</h3>
             <button type="button" onClick={addTable}>Add Table</button>
             {contract.physical_model.physical_tables.map((table, tIdx) => (
-              <div key={tIdx} style={{border: "1px solid #b3e5fc", padding: "10px", marginBottom: "10px", borderRadius: "6px"}}>
-                <input type="text" name={`physical_tables.table_name.${tIdx}`} placeholder="Table Name" value={table.table_name} onChange={handleChange} required />
-                <input type="text" name={`physical_tables.table_description.${tIdx}`} placeholder="Table Description" value={table.table_description} onChange={handleChange} required />
-                <input type="text" name={`physical_tables.partitioning_fields.${tIdx}`} placeholder="Partitioning Fields" value={table.partitioning_fields} onChange={handleChange} />
-                <input type="text" name={`physical_tables.clustering_fields.${tIdx}`} placeholder="Clustering Fields" value={table.clustering_fields} onChange={handleChange} />
-                <button type="button" onClick={() => removeTable(tIdx)} style={{marginBottom: "10px"}}>Remove Table</button>
+              <div key={tIdx} style={{
+                border: table._existing ? "2px solid #e0e0e0" : "1px solid #b3e5fc", 
+                padding: "10px", 
+                marginBottom: "10px", 
+                borderRadius: "6px",
+                backgroundColor: table._existing ? "#fafafa" : "white"
+              }}>
+                {/* ✅ Removed both indicator texts - clean interface */}
+                
+                <input 
+                  type="text" 
+                  name={`physical_tables.table_name.${tIdx}`} 
+                  placeholder="Table Name" 
+                  value={table.table_name} 
+                  onChange={handleChange} 
+                  required 
+                  disabled={table._existing}
+                  style={table._existing ? { background: "#f0f0f0", color: "#888" } : {}}
+                />
+                <input 
+                  type="text" 
+                  name={`physical_tables.table_description.${tIdx}`} 
+                  placeholder="Table Description" 
+                  value={table.table_description} 
+                  onChange={handleChange} 
+                  required 
+                />
+                <input 
+                  type="text" 
+                  name={`physical_tables.partitioning_fields.${tIdx}`} 
+                  placeholder="Partitioning Fields" 
+                  value={table.partitioning_fields || ""} 
+                  onChange={handleChange} 
+                />
+                <input 
+                  type="text" 
+                  name={`physical_tables.clustering_fields.${tIdx}`} 
+                  placeholder="Clustering Fields" 
+                  value={table.clustering_fields || ""} 
+                  onChange={handleChange} 
+                />
+                
+                {/* ✅ Remove button section remains the same */}
+                <div style={{ marginBottom: "10px" }}>
+                  {table._existing ? (
+                    <div
+                      style={{
+                        backgroundColor: "#e0e0e0",
+                        color: "#aaa",
+                        border: "none",
+                        padding: "8px 16px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        cursor: "not-allowed",
+                        textAlign: "center",
+                        userSelect: "none"
+                      }}
+                      title="Cannot delete existing tables"
+                    >
+                      🔒 Cannot Delete (Existing)
+                    </div>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        console.log("Removing table at index:", tIdx);
+                        removeTable(tIdx);
+                      }}
+                      style={{
+                        backgroundColor: "#dc3545",
+                        color: "white",
+                        cursor: "pointer",
+                        border: "none",
+                        padding: "8px 16px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        fontWeight: "500"
+                      }}
+                      title="Remove this table"
+                    >
+                      🗑️ Remove Table
+                    </button>
+                  )}
+                </div>
+                
                 <h4>Physical Fields</h4>
                 <button type="button" onClick={() => addField(tIdx)}>Add Field</button>
                 <table className="physical-fields-table" style={{tableLayout: "fixed", width: "100%"}}>

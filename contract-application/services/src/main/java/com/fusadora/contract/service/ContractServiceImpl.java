@@ -1,16 +1,13 @@
 package com.fusadora.contract.service;
 
 import com.fusadora.contract.repository.ContractRepository;
-import com.fusadora.contract.utils.DataContractVersion;
+import com.fusadora.contract.utils.DataContractChangeSetUtil;
+import com.fusadora.contract.utils.DataContractVersionUtil;
 import com.fusadora.model.datacontract.DataContract;
-import com.fusadora.model.datacontract.PhysicalField;
-import com.fusadora.model.datacontract.PhysicalTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -21,24 +18,14 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     public void saveContract(DataContract contract) {
-        int initialChangeSetNumber = 1;
         if (contract == null) {
             throw new IllegalArgumentException("Contract cannot be null");
         }
 
-        List<PhysicalTable> physicalTables = contract.getPhysicalModel() != null
-                ? Optional.ofNullable(contract.getPhysicalModel().getPhysicalTables()).orElse(Collections.emptyList())
-                : Collections.emptyList();
-        for (PhysicalTable table : physicalTables) {
-            table.setCurrentChangeSetNumber(initialChangeSetNumber);
+        // Initialize change set numbers for physical tables and fields
+        DataContractChangeSetUtil.addChangeSetNumber(contract);
 
-            List<PhysicalField> physicalFields = Optional.ofNullable(table.getPhysicalFields()).orElse(Collections.emptyList());
-            for (PhysicalField field : physicalFields) {
-                field.setChangeSetNumber(initialChangeSetNumber);
-            }
-        }
-
-        contractRepository.save(DataContractVersion.createWithNextVersion(contract, contractRepository));
+        contractRepository.save(DataContractVersionUtil.addNextVersion(contract));
     }
 
     @Override
@@ -70,22 +57,10 @@ public class ContractServiceImpl implements ContractService {
             throw new IllegalArgumentException("Contract not found with id: " + contract.getContractId());
         }
 
-        List<PhysicalTable> physicalTables = contract.getPhysicalModel() != null
-                ? Optional.ofNullable(contract.getPhysicalModel().getPhysicalTables()).orElse(Collections.emptyList())
-                : Collections.emptyList();
-        for (PhysicalTable table : physicalTables) {
-            int currentChangeSetNumber = table.getCurrentChangeSetNumber();
+        // Update change set numbers for physical tables and fields
+        DataContractChangeSetUtil.updateChangeSetNumber(contract);
 
-            List<PhysicalField> physicalFields = Optional.ofNullable(table.getPhysicalFields()).orElse(Collections.emptyList());
-            for (PhysicalField field : physicalFields) {
-                if (field.getChangeSetNumber() != currentChangeSetNumber) {
-                    field.setChangeSetNumber(currentChangeSetNumber + 1);
-                }
-            }
-            table.setCurrentChangeSetNumber(currentChangeSetNumber + 1);
-        }
-
-        contractRepository.save(DataContractVersion.createWithNextVersion(contract, contractRepository));
+        contractRepository.save(DataContractVersionUtil.addNextVersion(contract));
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.fusadora.model.datacontract;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.cloud.spring.data.datastore.core.mapping.Entity;
 import com.google.cloud.spring.data.datastore.core.mapping.Field;
@@ -13,7 +12,7 @@ import java.util.List;
 public class PhysicalField implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    @JsonIgnore
+    @JsonProperty("change_set_number")
     @Field(name = "change_set_number")
     public int changeSetNumber;
     @JsonProperty("nested_fields")

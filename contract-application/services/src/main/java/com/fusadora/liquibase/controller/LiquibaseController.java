@@ -17,10 +17,8 @@ public class LiquibaseController {
     private LiquibaseService liquibaseService;
 
     @PostMapping("/generateChangelog/{contractId}")
-    public ResponseEntity<Void> generateChangelog(@PathVariable String contractId) {
-        liquibaseService.generateChangeLog(contractId);
-        // TODO: return the changelog file or its path in the response
-        return ResponseEntity.ok().build();
+    public String generateChangelog(@PathVariable String contractId) {
+        return liquibaseService.generateChangeLog(contractId);
     }
 
     @PostMapping("/applyChangelog/{contractId}")
