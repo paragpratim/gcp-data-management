@@ -3,8 +3,16 @@ name: Build
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'contract-application/**'
+      - 'contract-ui/**'
+      - '.github/workflows/build.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'contract-application/**'
+      - 'contract-ui/**'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 jobs:
