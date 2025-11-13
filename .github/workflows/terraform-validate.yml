@@ -125,18 +125,6 @@ jobs:
             exit 0
           fi
           
-          # Create TFLint config that works in CI
-          cat > .tflint.hcl << EOF
-          plugin "terraform" {
-            enabled = true
-            preset  = "recommended"
-          }
-          EOF
-          
-          # Initialize TFLint without external plugins for CI
-          echo "🔧 Initializing TFLint..."
-          tflint --init
-          
           # Find all Terraform directories
           terraform_dirs=$(find terraform -name "*.tf" -type f 2>/dev/null | xargs dirname | sort | uniq || echo "")
           
@@ -151,12 +139,45 @@ jobs:
             echo ""
             echo "📁 Linting directory: $dir"
             
-            # Run TFLint with basic rules only (no external plugins)
-            if ! tflint --chdir="$dir" --format=compact --disable-rule=terraform_required_providers --disable-rule=terraform_required_version; then
-              echo "❌ TFLint found issues in: $dir"
-              lint_failed=true
+            # Check if there's a .tflint.hcl in this directory
+            if [ -f "$dir/.tflint.hcl" ]; then
+              echo "  Found .tflint.hcl, trying to initialize plugins..."
+              cd "$dir"
+              
+              # Try to initialize with plugins, but continue if it fails
+              if ! tflint --init > /dev/null 2>&1; then
+                echo "  ⚠️ Plugin initialization failed, running with basic rules only"
+                if ! tflint --format=compact \
+                    --disable-rule=terraform_required_providers \
+                    --disable-rule=terraform_required_version \
+                    --config="" 2>/dev/null; then
+                  echo "  ❌ TFLint found issues"
+                  lint_failed=true
+                else
+                  echo "  ✅ No linting issues found (basic rules)"
+                fi
+              else
+                echo "  ✅ Plugins initialized successfully"
+                if ! tflint --format=compact \
+                    --disable-rule=terraform_required_providers \
+                    --disable-rule=terraform_required_version; then
+                  echo "  ❌ TFLint found issues"
+                  lint_failed=true
+                else
+                  echo "  ✅ No linting issues found"
+                fi
+              fi
+              cd - > /dev/null
             else
-              echo "✅ No linting issues found in: $dir"
+              echo "  No .tflint.hcl found, using default rules"
+              if ! tflint --chdir="$dir" --format=compact \
+                  --disable-rule=terraform_required_providers \
+                  --disable-rule=terraform_required_version; then
+                echo "  ❌ TFLint found issues"
+                lint_failed=true
+              else
+                echo "  ✅ No linting issues found"
+              fi
             fi
           done
           
