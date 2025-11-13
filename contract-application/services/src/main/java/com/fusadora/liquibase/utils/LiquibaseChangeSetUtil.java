@@ -39,9 +39,9 @@ public class LiquibaseChangeSetUtil {
             if (changeSetNumber == 1) {
                 //Create Table statement
                 changeSet.append(getCreateTableStatement(aPhysicalTable, dataSetName));
-            } else {
+            } else if (changeSetNumber > 1) {
                 // Future changesets handled here (e.g., ALTER TABLE statements)
-                changeSet.append(getAlterTableStatement(aPhysicalTable, dataSetName));
+                changeSet.append(getAlterTableStatement(aPhysicalTable, dataSetName, changeSetNumber));
             }
         }
         return changeSet.toString();
@@ -66,6 +66,9 @@ public class LiquibaseChangeSetUtil {
                 .append(System.lineSeparator());
         //Columns
         for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
+            if (field.getChangeSetNumber() != 1) {
+                continue;
+            }
             changeSet.append("    ")
                     .append(field.getName())
                     .append(" ")
@@ -91,7 +94,7 @@ public class LiquibaseChangeSetUtil {
         return changeSet.toString();
     }
 
-    private static String getAlterTableStatement(PhysicalTable aPhysicalTable, String dataSetName) {
+    private static String getAlterTableStatement(PhysicalTable aPhysicalTable, String dataSetName, int thisChangeSet) {
         StringBuilder changeSet = new StringBuilder();
         changeSet.append("ALTER TABLE ")
                 .append(dataSetName)
@@ -100,20 +103,26 @@ public class LiquibaseChangeSetUtil {
                 .append(System.lineSeparator());
         //Columns
         for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
+            if (field.getChangeSetNumber() != thisChangeSet) {
+                continue;
+            }
             changeSet.append("    ADD COLUMN IF NOT EXISTS ")
                     .append(field.getName())
                     .append(" ")
                     .append(field.getType());
             changeSet.append(",")
                     .append(System.lineSeparator());
-            //Remove last comma
-            changeSet.setLength(changeSet.length() - 2);
-            changeSet.append(System.lineSeparator())
-                    .append(";")
-                    .append(System.lineSeparator());
         }
+        //Remove last comma
+        changeSet.setLength(changeSet.length() - 2);
+        changeSet.append(System.lineSeparator())
+                .append(";")
+                .append(System.lineSeparator());
         //Rollback for alter table
         for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
+            if (field.getChangeSetNumber() != thisChangeSet) {
+                continue;
+            }
             changeSet.append("--rollback ALTER TABLE ")
                     .append(dataSetName)
                     .append(".")

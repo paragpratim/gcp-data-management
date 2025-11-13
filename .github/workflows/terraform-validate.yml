@@ -1,0 +1,179 @@
+name: Terraform_Validation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+  workflow_dispatch:
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    name: Validate Terraform
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.6.0'
+
+      - name: Set up TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: v0.48.0
+
+      - name: Check Terraform format
+        run: |
+          echo "🎨 Checking Terraform format..."
+          
+          # Find all Terraform files in terraform directory
+          terraform_files=$(find terraform -name "*.tf" -type f 2>/dev/null || echo "")
+          
+          if [ -z "$terraform_files" ]; then
+            echo "⚠️ No Terraform files found in terraform directory"
+            exit 0
+          fi
+          
+          echo "Found Terraform files:"
+          echo "$terraform_files"
+          echo ""
+          
+          # Check format
+          format_failed=false
+          for file in $terraform_files; do
+            echo "Checking format: $file"
+            if ! terraform fmt -check -diff "$file"; then
+              echo "❌ Format check failed for: $file"
+              format_failed=true
+            fi
+          done
+          
+          if [ "$format_failed" = true ]; then
+            echo ""
+            echo "❌ Terraform format validation failed!"
+            echo "💡 To fix, run: terraform fmt -recursive terraform/"
+            exit 1
+          else
+            echo ""
+            echo "✅ All Terraform files are properly formatted!"
+          fi
+
+      - name: Validate Terraform syntax
+        run: |
+          echo "🔍 Validating Terraform syntax..."
+          
+          # Find all directories containing .tf files in terraform directory
+          terraform_dirs=$(find terraform -name "*.tf" -type f 2>/dev/null | xargs dirname | sort | uniq || echo "")
+          
+          if [ -z "$terraform_dirs" ]; then
+            echo "⚠️ No Terraform directories found"
+            exit 0
+          fi
+          
+          validation_failed=false
+          
+          for dir in $terraform_dirs; do
+            echo ""
+            echo "📁 Validating directory: $dir"
+            cd "$dir"
+            
+            # Initialize without backend (syntax check only)
+            echo "  🔧 Initializing (syntax check only)..."
+            if ! terraform init -backend=false -input=false > /dev/null 2>&1; then
+              echo "  ❌ Terraform init failed"
+              validation_failed=true
+            else
+              echo "  ✅ Init successful"
+              
+              # Validate syntax
+              echo "  🔍 Validating syntax..."
+              if ! terraform validate; then
+                echo "  ❌ Syntax validation failed"
+                validation_failed=true
+              else
+                echo "  ✅ Syntax is valid"
+              fi
+            fi
+            
+            cd - > /dev/null
+          done
+          
+          if [ "$validation_failed" = true ]; then
+            echo ""
+            echo "❌ Terraform syntax validation failed!"
+            exit 1
+          else
+            echo ""
+            echo "🎉 All Terraform configurations have valid syntax!"
+          fi
+
+      - name: Run TFLint
+        run: |
+          echo "🔍 Running Terraform linting checks..."
+          
+          # Check if terraform directory exists
+          if [ ! -d "terraform" ]; then
+            echo "⚠️ No terraform directory found"
+            exit 0
+          fi
+          
+          # Initialize TFLint
+          echo "🔧 Initializing TFLint..."
+          tflint --init
+          
+          # Find all Terraform directories
+          terraform_dirs=$(find terraform -name "*.tf" -type f 2>/dev/null | xargs dirname | sort | uniq || echo "")
+          
+          if [ -z "$terraform_dirs" ]; then
+            echo "⚠️ No Terraform directories found for linting"
+            exit 0
+          fi
+          
+          lint_failed=false
+          
+          for dir in $terraform_dirs; do
+            echo ""
+            echo "📁 Linting directory: $dir"
+            
+            # Run TFLint on the directory
+            if ! tflint --chdir="$dir" --format=compact; then
+              echo "❌ TFLint found issues in: $dir"
+              lint_failed=true
+            else
+              echo "✅ No linting issues found in: $dir"
+            fi
+          done
+          
+          if [ "$lint_failed" = true ]; then
+            echo ""
+            echo "❌ Terraform linting failed!"
+            echo "💡 Fix the issues above and run 'tflint' locally to verify"
+            exit 1
+          else
+            echo ""
+            echo "🎉 All Terraform configurations passed linting checks!"
+          fi
+
+      - name: Terraform validation summary
+        run: |
+          echo "## Terraform Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Format Check:** All Terraform files properly formatted" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Syntax Check:** All Terraform configurations valid" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Linting Check:** All configurations follow best practices" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Trigger:** \`${{ github.event_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Branch/Ref:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Validation Steps:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎨 Format checking with \`terraform fmt\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔍 Syntax validation with \`terraform validate\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🛡️ Best practices linting with \`tflint\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Validation runs without cloud provider authentication" >> $GITHUB_STEP_SUMMARY

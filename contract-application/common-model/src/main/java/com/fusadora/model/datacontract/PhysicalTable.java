@@ -1,6 +1,5 @@
 package com.fusadora.model.datacontract;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.cloud.spring.data.datastore.core.mapping.Entity;
 import com.google.cloud.spring.data.datastore.core.mapping.Field;
@@ -34,7 +33,7 @@ public class PhysicalTable implements Serializable {
     @Field(name = "clustering_fields")
     private String clusteringFields;
 
-    @JsonIgnore
+    @JsonProperty("current_changeset_number")
     @Field(name = "current_changeset_number")
     private int currentChangeSetNumber;
 

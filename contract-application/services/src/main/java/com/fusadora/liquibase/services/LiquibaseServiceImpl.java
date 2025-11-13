@@ -23,13 +23,14 @@ public class LiquibaseServiceImpl implements LiquibaseService {
     LiquibaseRepository liquibaseRepository;
 
     @Override
-    public void generateChangeLog(String contractId) {
+    public String generateChangeLog(String contractId) {
         Long id = Long.parseLong(contractId);
+        String liquibaseDirectoryPath = null;
         Optional<DataContract> dataContract = liquibaseRepository.findById(id);
         if (dataContract.isPresent()) {
             // Generate the Liquibase Change Log JSON file
             try {
-                LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(dataContract.get().getBigQueryDataset().getProject(),
+                liquibaseDirectoryPath = LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(dataContract.get().getBigQueryDataset().getProject(),
                         dataContract.get().getBigQueryDataset().getDataset(),
                         LIQUIBASE_PATH,
                         dataContract.get().getVersion().toString());
@@ -51,6 +52,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
         } else {
             throw new IllegalArgumentException("Contract not found with id: " + contractId);
         }
+        return liquibaseDirectoryPath;
     }
 
     @Override

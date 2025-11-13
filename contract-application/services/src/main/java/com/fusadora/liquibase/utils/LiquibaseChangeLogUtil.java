@@ -16,12 +16,13 @@ public class LiquibaseChangeLogUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void generateLiquibaseChangeLogJsonFile(String aProjectId, String aDataSetName, String liquibasePath, String dataProductVersion) throws IOException {
+    public static String generateLiquibaseChangeLogJsonFile(String aProjectId, String aDataSetName, String liquibasePath, String dataProductVersion) throws IOException {
         String jsonContent = getLiquibaseChangeLogJson(aDataSetName);
         // File Path: <liquibasePath>/<projectId>/<dataProductVersion>/<dataSetName>.json
         Path liquibaseDirectoryPath = Path.of(liquibasePath).resolve(aProjectId).resolve(dataProductVersion);
         Files.createDirectories(liquibaseDirectoryPath);
         Files.writeString(liquibaseDirectoryPath.resolve(aDataSetName + ".json"), jsonContent);
+        return liquibaseDirectoryPath.toString();
     }
 
     public static String getLiquibaseChangeLogJson(String aDataSetName) throws JsonProcessingException {
