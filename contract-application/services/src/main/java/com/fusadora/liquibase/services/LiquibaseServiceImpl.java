@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 @Service
@@ -32,7 +33,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
             try {
                 liquibaseDirectoryPath = LiquibaseChangeLogUtil.generateLiquibaseChangeLogJsonFile(dataContract.get().getBigQueryDataset().getProject(),
                         dataContract.get().getBigQueryDataset().getDataset(),
-                        LIQUIBASE_PATH,
+                        liquibasePathFor(contractId),
                         dataContract.get().getVersion().toString());
             } catch (IOException e) {
                 logger.error("Error generating Change Log", e);
@@ -43,7 +44,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
                     LiquibaseChangeSetUtil.generateLiquibaseChangeSetSqlFile(table,
                             dataContract.get().getBigQueryDataset().getProject(),
                             dataContract.get().getBigQueryDataset().getDataset(),
-                            LIQUIBASE_PATH,
+                            liquibasePathFor(contractId),
                             dataContract.get().getVersion().toString());
                 }
             } catch (IOException e) {
@@ -62,10 +63,14 @@ public class LiquibaseServiceImpl implements LiquibaseService {
         if (dataContract.isPresent()) {
             LiquibaseCommandUtil.updateBigQuery(dataContract.get().getBigQueryDataset().getProject(),
                     dataContract.get().getBigQueryDataset().getDataset(),
-                    LIQUIBASE_PATH,
-                    dataContract.get().getVersion().toString());
+                    liquibasePathFor(contractId),
+                    dataContract.get().getVersion().toString(), contractId);
         } else {
             throw new IllegalArgumentException("Contract not found with id: " + contractId);
         }
+    }
+
+    String liquibasePathFor(String contractId) {
+        return Paths.get(LIQUIBASE_PATH, contractId).toString();
     }
 }
