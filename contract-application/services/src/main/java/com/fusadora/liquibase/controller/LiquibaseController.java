@@ -3,7 +3,6 @@ package com.fusadora.liquibase.controller;
 import com.fusadora.liquibase.services.LiquibaseService;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,9 +21,7 @@ public class LiquibaseController {
     }
 
     @PostMapping("/applyChangelog/{contractId}")
-    public ResponseEntity<Void> applyChangelog(@PathVariable String contractId) {
-        liquibaseService.applyChangeLog(contractId);
-        // TODO: return the result of the operation in the response
-        return ResponseEntity.ok().build();
+    public String applyChangelog(@PathVariable String contractId) {
+        return liquibaseService.applyChangeLog(contractId);
     }
 }

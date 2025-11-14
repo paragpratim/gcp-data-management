@@ -6,6 +6,7 @@ import liquibase.resource.DirectoryResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import org.slf4j.Logger;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,13 +21,19 @@ public class LiquibaseCommandUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void updateBigQuery(String aProjectId, String aDataset, String liquibasePath, String dataProductVersion, String contractId) {
+    public static String updateBigQuery(String aProjectId, String aDataset, String liquibasePath, String dataProductVersion, String contractId) {
         String url = "jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=" + aProjectId + ";DefaultDataset=" + aDataset + ";OAuthType=3;";
 
         // Changelog file path
         // File Path: <liquibasePath>/<projectId>/<version>/<dataSetName>.json
         Path changelogFilePath = Path.of(liquibasePath).resolve(aProjectId).resolve(dataProductVersion);
-        String changelogFile = changelogFilePath.resolve(aDataset + ".json").toString();
+        String changelogFile = aDataset + ".json"; // filename relative to the DirectoryResourceAccessor
+        Path fullChangelogPath = changelogFilePath.resolve(changelogFile);
+
+        if (!Files.exists(fullChangelogPath)) {
+            logger.error("Changelog file does not exist: {}", fullChangelogPath);
+            return "Failed: changelog not found at " + fullChangelogPath;
+        }
 
         try (Connection conn = DriverManager.getConnection(url);
              liquibase.database.jvm.JdbcConnection jdbc = new liquibase.database.jvm.JdbcConnection(conn);
@@ -43,6 +50,8 @@ public class LiquibaseCommandUtil {
 
         } catch (Exception e) {
             logger.error("Error Connecting to BigQuery Project:[{}]:Dataset:[{}] for Contract [{}]", aProjectId, aDataset, contractId, e);
+            return "Failed to update BigQuery for Contract [" + contractId + "]";
         }
+        return "Successfully updated BigQuery for Contract [" + contractId + "]";
     }
 }
