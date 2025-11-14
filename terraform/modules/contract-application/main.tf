@@ -97,8 +97,11 @@ resource "google_bigquery_dataset" "datasets" {
     user_by_email = google_service_account.contract_service_account.email
   }
 
-  # Optional: Set default table expiration (in milliseconds)
-  default_table_expiration_ms = 604800000 # 7 days
+  # Domain read-only access
+  access {
+    role   = "READER"
+    domain = var.my_domain
+  }
 
   # Optional: Set deletion policy
   delete_contents_on_destroy = true
@@ -106,6 +109,41 @@ resource "google_bigquery_dataset" "datasets" {
   # Labels for organization
   labels = {
     project    = "data-contract"
+    managed_by = "terraform"
+  }
+
+  depends_on = [
+    google_project_service.required_apis,
+    google_service_account.contract_service_account
+  ]
+}
+
+# Create dedicated BigQuery dataset for Liquibase admin
+resource "google_bigquery_dataset" "liquibase_admin" {
+  dataset_id    = "liquibase_admin"
+  friendly_name = "Liquibase Admin"
+  description   = "Dataset for Liquibase admin operations"
+  location      = var.region
+  project       = var.project_id
+
+  # Service account owner access
+  access {
+    role          = "OWNER"
+    user_by_email = google_service_account.contract_service_account.email
+  }
+
+  # Domain read-only access
+  access {
+    role   = "READER"
+    domain = var.my_domain
+  }
+
+  # Optional: Set deletion policy
+  delete_contents_on_destroy = true
+
+  # Labels for organization
+  labels = {
+    project    = "liquibase-admin"
     managed_by = "terraform"
   }
 

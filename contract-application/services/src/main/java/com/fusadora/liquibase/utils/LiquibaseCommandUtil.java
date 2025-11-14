@@ -21,8 +21,8 @@ public class LiquibaseCommandUtil {
         throw new IllegalStateException("Utility class");
     }
 
-    public static String updateBigQuery(String aProjectId, String aDataset, String liquibasePath, String dataProductVersion, String contractId) {
-        String url = "jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=" + aProjectId + ";DefaultDataset=" + aDataset + ";OAuthType=3;";
+    public static String updateBigQuery(String aProjectId, String aDataset, String liquibasePath, String dataProductVersion, String contractId, String defaultDataset) {
+        String url = "jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=" + aProjectId + ";DefaultDataset=" + defaultDataset + ";OAuthType=3;";
 
         // Changelog file path
         // File Path: <liquibasePath>/<projectId>/<version>/<dataSetName>.json
