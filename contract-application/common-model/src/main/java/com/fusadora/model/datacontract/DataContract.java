@@ -1,14 +1,18 @@
 package com.fusadora.model.datacontract;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fusadora.model.validator.ValidDataContract;
 import com.google.cloud.spring.data.datastore.core.mapping.Entity;
 import com.google.cloud.spring.data.datastore.core.mapping.Field;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.Id;
 
 import java.io.Serial;
 import java.io.Serializable;
 
 @Entity(name = "data_contract")
+@ValidDataContract
 public class DataContract implements Serializable {
 
     @Serial
@@ -19,6 +23,7 @@ public class DataContract implements Serializable {
     @Field(name = "contract_id")
     private Long contractId;
 
+    @NotBlank(message = "Data product name is required")
     @JsonProperty("data_product_name")
     @Field(name = "data_product_name")
     private String dataProductName;
@@ -27,19 +32,22 @@ public class DataContract implements Serializable {
     @Field(name = "version")
     private Double version;
 
+    @NotBlank(message = "Data owner is required")
     @JsonProperty("data_owner")
     @Field(name = "data_owner")
     private String dataOwner;
 
+    @NotBlank(message = "Description is required")
     @JsonProperty("description")
     @Field(name = "description")
     private String description;
 
-
+    @Valid
     @JsonProperty("big_query_dataset")
     @Field(name = "big_query_dataset")
     private BigQueryDataset bigQueryDataset;
 
+    @Valid
     @JsonProperty("physical_model")
     @Field(name = "physical_model")
     private PhysicalModel physicalModel;
