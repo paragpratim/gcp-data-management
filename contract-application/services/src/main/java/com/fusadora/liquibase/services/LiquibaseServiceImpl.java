@@ -8,6 +8,7 @@ import com.fusadora.model.datacontract.DataContract;
 import com.fusadora.model.datacontract.PhysicalTable;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,12 +18,13 @@ import java.util.Optional;
 @Service
 public class LiquibaseServiceImpl implements LiquibaseService {
 
-    private static final String LIQUIBASE_PATH = "/mnt/liquibase";
-    private static final String LIQUIBASE_DEFAULT_DATASET = "liquibase_admin";
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LiquibaseServiceImpl.class);
-
     @Autowired
     LiquibaseRepository liquibaseRepository;
+    @Value("${liquibase.change.path:/mnt/liquibase}")
+    private String liquibaseChangePath;
+    @Value("${liquibase.change.dataset:liquibase_admin}")
+    private String liquibaseChangeDataset;
 
     @Override
     public String generateChangeLog(String contractId) {
@@ -66,7 +68,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
             response = LiquibaseCommandUtil.updateBigQuery(dataContract.get().getBigQueryDataset().getProject(),
                     dataContract.get().getBigQueryDataset().getDataset(),
                     liquibasePathFor(contractId),
-                    dataContract.get().getVersion().toString(), contractId, LIQUIBASE_DEFAULT_DATASET);
+                    dataContract.get().getVersion().toString(), contractId, liquibaseChangeDataset);
         } else {
             throw new IllegalArgumentException("Contract not found with id: " + contractId);
         }
@@ -74,6 +76,6 @@ public class LiquibaseServiceImpl implements LiquibaseService {
     }
 
     String liquibasePathFor(String contractId) {
-        return Paths.get(LIQUIBASE_PATH, contractId).toString();
+        return Paths.get(liquibaseChangePath, contractId).toString();
     }
 }
