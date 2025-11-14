@@ -9,16 +9,19 @@ import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.StreamSupport;
 
 @Service
 public class GCPServiceImpl implements GCPService {
 
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(GCPServiceImpl.class);
-
+    @Value("${liquibase.change.dataset:liquibase_admin}")
+    private String liquibaseChangeDataset;
     @Autowired
     private GCPRepository gcpRepository;
 
@@ -50,6 +53,8 @@ public class GCPServiceImpl implements GCPService {
         try {
             BigQuery bigQuery = BigQueryOptions.newBuilder().setProjectId(gcpProjectId).build().getService();
             for (Dataset dataset : bigQuery.listDatasets(BigQuery.DatasetListOption.all()).iterateAll()) {
+                if (Objects.equals(dataset.getDatasetId().getDataset(), liquibaseChangeDataset))
+                    continue;
                 BigQueryDataset bigQueryDataset = new BigQueryDataset();
                 bigQueryDataset.setProject(gcpProjectId);
                 bigQueryDataset.setDataset(dataset.getDatasetId().getDataset());
