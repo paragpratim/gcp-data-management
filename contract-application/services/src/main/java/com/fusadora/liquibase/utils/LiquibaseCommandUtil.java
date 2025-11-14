@@ -45,7 +45,7 @@ public class LiquibaseCommandUtil {
 
             liquibase.update((String) null);
             liquibase.tag(
-                    contractId + dataProductVersion + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss"))
+                    contractId + "_" + dataProductVersion + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss"))
             );
 
         } catch (Exception e) {
