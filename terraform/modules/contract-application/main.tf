@@ -119,36 +119,36 @@ resource "google_bigquery_dataset" "datasets" {
 }
 
 # Create dedicated BigQuery dataset for Liquibase admin
-resource "google_bigquery_dataset" "liquibase_admin" {
-  dataset_id    = "liquibase_admin"
-  friendly_name = "Liquibase Admin"
-  description   = "Dataset for Liquibase admin operations"
-  location      = var.region
-  project       = var.project_id
+# resource "google_bigquery_dataset" "liquibase_admin" {
+#   dataset_id    = "liquibase_admin"
+#   friendly_name = "Liquibase Admin"
+#   description   = "Dataset for Liquibase admin operations"
+#   location      = var.region
+#   project       = var.project_id
 
-  # Service account owner access
-  access {
-    role          = "OWNER"
-    user_by_email = google_service_account.contract_service_account.email
-  }
+#   # Service account owner access
+#   access {
+#     role          = "OWNER"
+#     user_by_email = google_service_account.contract_service_account.email
+#   }
 
-  # Domain read-only access
-  access {
-    role   = "READER"
-    domain = var.my_domain
-  }
+#   # Domain read-only access
+#   access {
+#     role   = "READER"
+#     domain = var.my_domain
+#   }
 
-  # Optional: Set deletion policy
-  delete_contents_on_destroy = true
+#   # Optional: Set deletion policy
+#   delete_contents_on_destroy = true
 
-  # Labels for organization
-  labels = {
-    project    = "liquibase-admin"
-    managed_by = "terraform"
-  }
+#   # Labels for organization
+#   labels = {
+#     project    = "liquibase-admin"
+#     managed_by = "terraform"
+#   }
 
-  depends_on = [
-    google_project_service.required_apis,
-    google_service_account.contract_service_account
-  ]
-}
+#   depends_on = [
+#     google_project_service.required_apis,
+#     google_service_account.contract_service_account
+#   ]
+# }
