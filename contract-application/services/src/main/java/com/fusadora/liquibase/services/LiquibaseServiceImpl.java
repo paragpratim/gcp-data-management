@@ -18,6 +18,7 @@ import java.util.Optional;
 public class LiquibaseServiceImpl implements LiquibaseService {
 
     private static final String LIQUIBASE_PATH = "/mnt/liquibase";
+    private static final String LIQUIBASE_DEFAULT_DATASET = "liquibase_admin";
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(LiquibaseServiceImpl.class);
 
     @Autowired
@@ -65,7 +66,7 @@ public class LiquibaseServiceImpl implements LiquibaseService {
             response = LiquibaseCommandUtil.updateBigQuery(dataContract.get().getBigQueryDataset().getProject(),
                     dataContract.get().getBigQueryDataset().getDataset(),
                     liquibasePathFor(contractId),
-                    dataContract.get().getVersion().toString(), contractId);
+                    dataContract.get().getVersion().toString(), contractId, LIQUIBASE_DEFAULT_DATASET);
         } else {
             throw new IllegalArgumentException("Contract not found with id: " + contractId);
         }
