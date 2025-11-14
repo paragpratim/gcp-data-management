@@ -57,17 +57,19 @@ public class LiquibaseServiceImpl implements LiquibaseService {
     }
 
     @Override
-    public void applyChangeLog(String contractId) {
+    public String applyChangeLog(String contractId) {
         Long id = Long.parseLong(contractId);
         Optional<DataContract> dataContract = liquibaseRepository.findById(id);
+        String response;
         if (dataContract.isPresent()) {
-            LiquibaseCommandUtil.updateBigQuery(dataContract.get().getBigQueryDataset().getProject(),
+            response = LiquibaseCommandUtil.updateBigQuery(dataContract.get().getBigQueryDataset().getProject(),
                     dataContract.get().getBigQueryDataset().getDataset(),
                     liquibasePathFor(contractId),
                     dataContract.get().getVersion().toString(), contractId);
         } else {
             throw new IllegalArgumentException("Contract not found with id: " + contractId);
         }
+        return response;
     }
 
     String liquibasePathFor(String contractId) {
