@@ -38,7 +38,7 @@ spec:
             memory: "256Mi"
         volumeMounts:
         - name: liquibase-storage
-          mountPath: /mnt/liquibase
+          mountPath: ${LIQUIBASE_CHANGE_PATH}
           readOnly: false
         startupProbe:
           httpGet:
@@ -63,21 +63,23 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "production"
-        - name: LIQUIBASE_LOG_PATH
-          value: "/mnt/liquibase"
         - name: SERVER_PORT
           value: "8080"
         - name: SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID
           value: "${SPRING_CLOUD_GCP_DATASTORE_PROJECT_ID}"
         - name: SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID
           value: "${SPRING_CLOUD_GCP_DATASTORE_DATABASE_ID}"
+        - name: LIQUIBASE_CHANGE_PATH
+          value: "${LIQUIBASE_CHANGE_PATH}"
+        - name: LIQUIBASE_CHANGE_DATASET
+          value: "${LIQUIBASE_CHANGE_DATASET}"
         resources:
           limits:
             cpu: "1000m"
             memory: "512Mi"
         volumeMounts:
         - name: liquibase-storage
-          mountPath: /mnt/liquibase
+          mountPath: ${LIQUIBASE_CHANGE_PATH}
           readOnly: false
         startupProbe:
           httpGet:
