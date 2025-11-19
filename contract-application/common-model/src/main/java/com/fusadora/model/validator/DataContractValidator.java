@@ -2,61 +2,79 @@ package com.fusadora.model.validator;
 
 import com.fusadora.model.datacontract.DataContract;
 import com.fusadora.model.datacontract.PhysicalField;
+import com.fusadora.model.datacontract.PhysicalModel;
 import com.fusadora.model.datacontract.PhysicalTable;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+/**
+ * com.fusadora.model.validator.DataContractValidator
+ * Validates that within a DataContract, all table names are unique and all column names within each table are unique.
+ * Any violations will result in constraint violations being added to the validation context.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
 
 public class DataContractValidator implements ConstraintValidator<ValidDataContract, DataContract> {
 
     @Override
     @SuppressWarnings("java:S3776") // Suppress cognitive complexity warning
     public boolean isValid(DataContract contract, ConstraintValidatorContext context) {
-        if (contract == null) {
+        if (contract == null || contract.getPhysicalModel() == null) {
             return true;
         }
 
-        boolean isValid = true;
-        context.disableDefaultConstraintViolation();
+        PhysicalModel model = contract.getPhysicalModel();
+        List<PhysicalTable> tables = model.getPhysicalTables();
+        if (tables == null || tables.isEmpty()) {
+            return true;
+        }
 
-        // Validate table names are unique
-        if (contract.getPhysicalModel() != null && contract.getPhysicalModel().getPhysicalTables() != null) {
-            List<PhysicalTable> tables = contract.getPhysicalModel().getPhysicalTables();
-            Set<String> tableNames = new HashSet<>();
+        List<String> violations = new ArrayList<>();
 
-            for (PhysicalTable table : tables) {
-                if (table.getName() != null) {
-                    if (!tableNames.add(table.getName().toLowerCase())) {
-                        context.buildConstraintViolationWithTemplate(
-                                        "Duplicate table name found: " + table.getName())
-                                .addPropertyNode("physicalModel.tables")
-                                .addConstraintViolation();
-                        isValid = false;
+        // check duplicate table names
+        Set<String> tableNames = new HashSet<>();
+        for (PhysicalTable table : tables) {
+            if (table == null) {
+                continue;
+            }
+            String tName = table.getName();
+            if (tName != null && !tableNames.add(tName)) {
+                violations.add("Duplicate table name: " + tName);
+            }
+
+            // check duplicate column names within this table
+            List<PhysicalField> fields = table.getPhysicalFields();
+            if (fields != null) {
+                Set<String> fieldNames = new HashSet<>();
+                for (PhysicalField field : fields) {
+                    if (field == null) {
+                        continue;
                     }
-
-                    // Validate column names are unique within each table
-                    if (table.getPhysicalFields() != null) {
-                        Set<String> columnNames = new HashSet<>();
-                        for (PhysicalField column : table.getPhysicalFields()) {
-                            if (column.getName() != null) {
-                                if (!columnNames.add(column.getName().toLowerCase())) {
-                                    context.buildConstraintViolationWithTemplate(
-                                                    "Duplicate column name '" + column.getName() +
-                                                            "' in table: " + table.getName())
-                                            .addPropertyNode("physicalModel.tables[].columns")
-                                            .addConstraintViolation();
-                                    isValid = false;
-                                }
-                            }
-                        }
+                    String fName = field.getName();
+                    if (fName != null && !fieldNames.add(fName)) {
+                        violations.add("Duplicate column name: " + fName + " in table " + (tName == null ? "<unknown>" : tName));
                     }
                 }
             }
         }
 
-        return isValid;
+        if (!violations.isEmpty()) {
+            if (context != null) {
+                context.disableDefaultConstraintViolation();
+                for (String msg : violations) {
+                    context.buildConstraintViolationWithTemplate(msg).addConstraintViolation();
+                }
+            }
+            return false;
+        }
+
+        return true;
     }
 }

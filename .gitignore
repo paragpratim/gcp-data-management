@@ -451,3 +451,6 @@ out/
 *.class
 *.war
 *.ear
+
+# JaCoCo coverage files
+**/jacoco-merged-report/

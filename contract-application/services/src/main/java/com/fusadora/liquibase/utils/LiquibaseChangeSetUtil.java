@@ -7,6 +7,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * com.fusadora.liquibase.utils.LiquibaseChangeSetUtil
+ * Utility class to generate Liquibase formatted SQL change sets for Physical Tables.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
+
 public class LiquibaseChangeSetUtil {
 
     private static final String CHANGESET_AUTHOR = "fusadora";
@@ -15,6 +23,16 @@ public class LiquibaseChangeSetUtil {
         throw new IllegalStateException("Utility class");
     }
 
+    /**
+     * Generates a Liquibase formatted SQL file for the given PhysicalTable.
+     *
+     * @param aPhysicalTable   The PhysicalTable object containing table details.
+     * @param aProjectId       The project ID for directory structure.
+     * @param aDatasetName     The dataset name where the table resides.
+     * @param liquibasePath    The base path to store the generated SQL file.
+     * @param dataProductVersion The version of the data product for directory structure.
+     * @throws IOException If an I/O error occurs writing to or creating the file.
+     */
     public static void generateLiquibaseChangeSetSqlFile(PhysicalTable aPhysicalTable, String aProjectId, String aDatasetName, String liquibasePath, String dataProductVersion) throws IOException {
         String liquibaseFormatedSql = getLiquibaseChangeSetSql(aPhysicalTable, aDatasetName);
         // File Path: <liquibasePath>/<projectId>/<dataProductVersion>/<dataSetName>/<tableName>.sql
@@ -23,6 +41,13 @@ public class LiquibaseChangeSetUtil {
         Files.writeString(changeSetDirectoryPath.resolve(aPhysicalTable.getName() + ".sql"), liquibaseFormatedSql);
     }
 
+    /**
+     * Generates Liquibase formatted SQL change set for the given PhysicalTable.
+     *
+     * @param aPhysicalTable The PhysicalTable object containing table details.
+     * @param dataSetName    The dataset name where the table resides.
+     * @return A string containing the Liquibase formatted SQL change set.
+     */
     public static String getLiquibaseChangeSetSql(PhysicalTable aPhysicalTable, String dataSetName) {
         StringBuilder changeSet = new StringBuilder();
 
@@ -48,14 +73,33 @@ public class LiquibaseChangeSetUtil {
     }
 
 
+    /**
+     * Generates the Liquibase header for the SQL file.
+     *
+     * @return A string containing the Liquibase header.
+     */
     private static String getLiquibaseHeader() {
         return "--liquibase formatted sql" + System.lineSeparator();
     }
 
+    /**
+     * Generates the changeset header for a specific changeset number.
+     *
+     * @param aPhysicalTable  The PhysicalTable object containing table details.
+     * @param changeSetNumber The changeset number.
+     * @return A string containing the changeset header.
+     */
     private static String getChangesetHeader(PhysicalTable aPhysicalTable, int changeSetNumber) {
         return "--changeset " + CHANGESET_AUTHOR + ":" + aPhysicalTable.getName() + "_" + changeSetNumber + System.lineSeparator();
     }
 
+    /**
+     * Generates the CREATE TABLE statement for the first changeset.
+     *
+     * @param aPhysicalTable The PhysicalTable object containing table details.
+     * @param dataSetName    The dataset name where the table resides.
+     * @return A string containing the CREATE TABLE statement.
+     */
     private static String getCreateTableStatement(PhysicalTable aPhysicalTable, String dataSetName) {
         StringBuilder changeSet = new StringBuilder();
         changeSet.append("CREATE TABLE IF NOT EXISTS ")
@@ -94,6 +138,14 @@ public class LiquibaseChangeSetUtil {
         return changeSet.toString();
     }
 
+    /**
+     * Generates the ALTER TABLE statement for subsequent changesets.
+     *
+     * @param aPhysicalTable The PhysicalTable object containing table details.
+     * @param dataSetName    The dataset name where the table resides.
+     * @param thisChangeSet  The current changeset number.
+     * @return A string containing the ALTER TABLE statement.
+     */
     private static String getAlterTableStatement(PhysicalTable aPhysicalTable, String dataSetName, int thisChangeSet) {
         StringBuilder changeSet = new StringBuilder();
         changeSet.append("ALTER TABLE ")

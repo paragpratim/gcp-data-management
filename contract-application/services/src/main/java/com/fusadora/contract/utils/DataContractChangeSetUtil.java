@@ -9,9 +9,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * com.fusadora.contract.utils.DataContractChangeSetUtil
+ * Utility class for managing change set numbers in DataContract objects.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
+
 public class DataContractChangeSetUtil {
 
-    private DataContractChangeSetUtil() {
+    DataContractChangeSetUtil() {
         throw new IllegalStateException("Utility class");
     }
 

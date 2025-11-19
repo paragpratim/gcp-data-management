@@ -16,6 +16,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.StreamSupport;
 
+/**
+ * com.fusadora.gcp.service.GCPServiceImpl
+ * Implementation of GCPService to manage GCP projects and BigQuery datasets.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
+
 @Service
 public class GCPServiceImpl implements GCPService {
 
@@ -25,21 +33,45 @@ public class GCPServiceImpl implements GCPService {
     @Autowired
     private GCPRepository gcpRepository;
 
+    /**
+     * Adds a GCP project to the repository.
+     * Add dummy project named dummy-project for testing purposes.
+     *
+     * @param gcpProjectId The GCP project to add.
+     */
     @Override
     public void addGCPProject(GCPProjects gcpProjectId) {
         gcpRepository.save(gcpProjectId);
     }
 
+    /**
+     * Deletes a GCP project from the repository.
+     *
+     * @param gcpProjectId The GCP project to delete.
+     */
     @Override
     public void deleteGCPProject(String gcpProjectId) {
         // TODO: Implement deletion logic if necessary
     }
 
+    /**
+     * Retrieves all GCP projects from the repository.
+     *
+     * @return A list of GCP projects.
+     */
     @Override
     public List<GCPProjects> getGCPProjects() {
         return StreamSupport.stream(gcpRepository.findAll().spliterator(), false).toList();
     }
 
+    /**
+     * Retrieves BigQuery datasets for a given GCP project.
+     * Also skips the dataset used for Liquibase changes.
+     * Returns dummy dataset dummy-dataset for testing purposes.
+     *
+     * @param gcpProjectId The GCP project ID.
+     * @return A list of BigQuery datasets.
+     */
     @Override
     public List<BigQueryDataset> getBigQueryDatasets(String gcpProjectId) {
         // Dummy data for testing purposes
