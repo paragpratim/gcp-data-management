@@ -65,11 +65,6 @@ jobs:
           name: all-surefire-reports
           path: '**/target/surefire-reports/'
 
-      - name: Publish Surefire Report
-        uses: scacap/action-surefire-report@v1
-        with:
-          report_paths: '**/target/surefire-reports/TEST-*.xml'
-
       - name: Merge Jacoco Coverage
         run: |
           cd contract-application
