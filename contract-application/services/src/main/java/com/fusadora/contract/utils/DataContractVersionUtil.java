@@ -5,10 +5,19 @@ import com.fusadora.model.datacontract.DataContract;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+/**
+ * com.fusadora.contract.utils.DataContractVersionUtil
+ * Utility class to handle versioning of DataContract objects.
+ * Provides methods to compute and assign the next version number
+ * based on existing contract details.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
 
 public class DataContractVersionUtil {
 
-    private DataContractVersionUtil() {
+    DataContractVersionUtil() {
         throw new IllegalStateException("Utility class");
     }
 

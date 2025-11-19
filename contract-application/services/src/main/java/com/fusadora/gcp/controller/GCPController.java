@@ -10,6 +10,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * com.fusadora.gcp.controller.GCPController
+ * This controller handles GCP project related operations such as saving projects
+ * and retrieving BigQuery datasets.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
+
 @RestController
 @RequestMapping("/api/gcp")
 @CrossOrigin(origins = "*")
@@ -20,6 +29,12 @@ public class GCPController {
     @Autowired
     private GCPService gcpService;
 
+    /**
+     * Save GCP Project details
+     *
+     * @param gcpProjects GCPProjects object containing project details
+     * @return Success or error message
+     */
     @PostMapping("/saveProject")
     public String saveProject(@RequestBody GCPProjects gcpProjects) {
         try {
@@ -31,11 +46,22 @@ public class GCPController {
         }
     }
 
+    /**
+     * Retrieve all GCP Projects
+     *
+     * @return List of GCPProjects
+     */
     @GetMapping("/getProjects")
     public List<GCPProjects> getProjects() {
         return gcpService.getGCPProjects();
     }
 
+    /**
+     * Retrieve BigQuery datasets for a given GCP project ID
+     *
+     * @param gcpProjectId GCP Project ID
+     * @return List of BigQueryDataset
+     */
     @GetMapping("/getBigQueryDatasets/{gcpProjectId}")
     public List<BigQueryDataset> getBigQueryDatasets(@PathVariable String gcpProjectId) {
         List<BigQueryDataset> datasets = new ArrayList<>();
