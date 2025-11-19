@@ -68,7 +68,7 @@ jobs:
       - name: Merge Jacoco Coverage
         run: |
           cd contract-application
-          zsh jacoco-merge-report.sh
+          bash jacoco-merge-report.sh
 
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
