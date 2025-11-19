@@ -15,6 +15,14 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+/**
+ * com.fusadora.liquibase.services.LiquibaseServiceImpl
+ * Implementation of LiquibaseService to handle Liquibase operations for Data Contracts.
+ *
+ * @author Parag Ghosh
+ * @since 17/11/2025
+ */
+
 @Service
 public class LiquibaseServiceImpl implements LiquibaseService {
 
@@ -26,6 +34,12 @@ public class LiquibaseServiceImpl implements LiquibaseService {
     @Value("${liquibase.change.dataset:liquibase_admin}")
     private String liquibaseChangeDataset;
 
+    /**
+     * Generates Liquibase Change Log and Change Set SQL files for the specified Data Contract.
+     *
+     * @param contractId The ID of the Data Contract.
+     * @return The path to the generated Liquibase Change Log directory.
+     */
     @Override
     public String generateChangeLog(String contractId) {
         Long id = Long.parseLong(contractId);
@@ -59,6 +73,12 @@ public class LiquibaseServiceImpl implements LiquibaseService {
         return liquibaseDirectoryPath;
     }
 
+    /**
+     * Applies the Liquibase Change Log to the BigQuery dataset for the specified Data Contract.
+     *
+     * @param contractId The ID of the Data Contract.
+     * @return The response from the Liquibase update command.
+     */
     @Override
     public String applyChangeLog(String contractId) {
         Long id = Long.parseLong(contractId);
@@ -75,6 +95,11 @@ public class LiquibaseServiceImpl implements LiquibaseService {
         return response;
     }
 
+    /** Helper method to construct the Liquibase path for a given contract ID
+     *
+     * @param contractId The ID of the Data Contract.
+     * @return The constructed Liquibase path as a String.
+     */
     String liquibasePathFor(String contractId) {
         return Paths.get(liquibaseChangePath, contractId).toString();
     }
