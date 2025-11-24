@@ -8,7 +8,7 @@ export default function CreateContract() {
   const [datasets, setDatasets] = useState([]);
   const [contract, setContract] = useState({
     data_product_name: "",
-    version: "Auto-generated", // ✅ Set default placeholder text
+    version: "Version (Auto-generated)", // ✅ Set default placeholder text
     data_owner: "",
     description: "",
     big_query_dataset: {
