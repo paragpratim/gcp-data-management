@@ -25,7 +25,7 @@ variable "my_domain" {
 variable "bigquery_datasets" {
   description = "List of BigQuery dataset IDs to create"
   type        = list(string)
-  default     = ["raw_data", "processed_data", "analytics", "staging"]
+  default     = []
 
   validation {
     condition = alltrue([
