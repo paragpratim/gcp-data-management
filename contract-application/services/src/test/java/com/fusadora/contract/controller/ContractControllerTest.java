@@ -52,7 +52,7 @@ class ContractControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(contract)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Contract saved successfully"));
+                .andExpect(content().string("Contract [1] saved successfully"));
 
         verify(contractService).saveContract(any(DataContract.class));
     }
@@ -121,7 +121,7 @@ class ContractControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(contract)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Contract updated successfully"));
+                .andExpect(content().string("Contract [1] updated successfully"));
 
         verify(contractService).updateContract(any(DataContract.class));
     }
