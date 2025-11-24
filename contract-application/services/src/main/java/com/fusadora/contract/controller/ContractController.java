@@ -38,7 +38,7 @@ public class ContractController {
     public String saveContract(@RequestBody DataContract contract) {
         try {
             contractService.saveContract(contract);
-            return "Contract saved successfully";
+            return String.format("Contract [%d] saved successfully", contract.getContractId());
         } catch (Exception e) {
             logger.error("Error saving contract: ", e);
             return "Error saving contract: " + e.getMessage();
@@ -83,7 +83,7 @@ public class ContractController {
     public String updateContract(@RequestBody DataContract contract) {
         try {
             contractService.updateContract(contract);
-            return "Contract updated successfully";
+            return String.format("Contract [%d] updated successfully", contract.getContractId());
         } catch (Exception e) {
             logger.error("Error updating contract: ", e);
             return "Error updating contract: " + e.getMessage();
