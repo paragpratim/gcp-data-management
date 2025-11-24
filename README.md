@@ -3,6 +3,8 @@
 
 A self-service application for managing data contracts and schemas in Google Cloud Platform (GCP). This application provides a comprehensive solution for creating, managing, and versioning data contracts with automated schema management using Liquibase for BigQuery.
 
+![High Level Flow](./architecture/data-product-highlevel-flow.png)
+
 ## Architecture
 
 ### Architecture Diagram
