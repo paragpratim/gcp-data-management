@@ -75,6 +75,36 @@ class DataContractValidatorTest {
     }
 
     @Test
+    void isValid_returnsFalse_whenDuplicateNestedColumnNamesExistInTable() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField nested1 = new PhysicalField();
+        nested1.setName("NestedColumn1");
+        PhysicalField nested2 = new PhysicalField();
+        nested2.setName("NestedColumn1");
+
+        PhysicalField parent1 = new PhysicalField();
+        parent1.setName("ParentColumn1");
+        parent1.setNestedFields(List.of(nested1));
+        PhysicalField parent2 = new PhysicalField();
+        parent2.setName("ParentColumn2");
+        parent2.setNestedFields(List.of(nested2));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(parent1, parent2));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
     void isValid_returnsTrue_whenAllTableAndColumnNamesAreUnique() {
         DataContractValidator validator = new DataContractValidator();
         DataContract contract = new DataContract();
@@ -90,6 +120,33 @@ class DataContractValidatorTest {
         table2.setPhysicalFields(List.of(column2));
         contract.setPhysicalModel(new PhysicalModel());
         contract.getPhysicalModel().setPhysicalTables(List.of(table1, table2));
+        assertTrue(validator.isValid(contract, null));
+    }
+
+    @Test
+    void isValid_returnsTrue_whenAllNestedColumnNamesAreUnique() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField nested1 = new PhysicalField();
+        nested1.setName("NestedColumn1");
+        PhysicalField nested2 = new PhysicalField();
+        nested2.setName("NestedColumn2");
+
+        PhysicalField parent1 = new PhysicalField();
+        parent1.setName("ParentColumn1");
+        parent1.setNestedFields(List.of(nested1));
+        PhysicalField parent2 = new PhysicalField();
+        parent2.setName("ParentColumn2");
+        parent2.setNestedFields(List.of(nested2));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(parent1, parent2));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
         assertTrue(validator.isValid(contract, null));
     }
 }

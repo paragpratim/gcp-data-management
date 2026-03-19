@@ -23,6 +23,28 @@ import java.util.Set;
 
 public class DataContractValidator implements ConstraintValidator<ValidDataContract, DataContract> {
 
+    private void validateFieldNamesRecursively(List<PhysicalField> fields,
+                                               String tableName,
+                                               Set<String> fieldNames,
+                                               List<String> violations) {
+        if (fields == null || fields.isEmpty()) {
+            return;
+        }
+
+        for (PhysicalField field : fields) {
+            if (field == null) {
+                continue;
+            }
+
+            String fName = field.getName();
+            if (fName != null && !fieldNames.add(fName)) {
+                violations.add("Duplicate column name: " + fName + " in table " + tableName);
+            }
+
+            validateFieldNamesRecursively(field.getNestedFields(), tableName, fieldNames, violations);
+        }
+    }
+
     @Override
     @SuppressWarnings("java:S3776") // Suppress cognitive complexity warning
     public boolean isValid(DataContract contract, ConstraintValidatorContext context) {
@@ -53,15 +75,8 @@ public class DataContractValidator implements ConstraintValidator<ValidDataContr
             List<PhysicalField> fields = table.getPhysicalFields();
             if (fields != null) {
                 Set<String> fieldNames = new HashSet<>();
-                for (PhysicalField field : fields) {
-                    if (field == null) {
-                        continue;
-                    }
-                    String fName = field.getName();
-                    if (fName != null && !fieldNames.add(fName)) {
-                        violations.add("Duplicate column name: " + fName + " in table " + (tName == null ? "<unknown>" : tName));
-                    }
-                }
+                String tableName = tName == null ? "<unknown>" : tName;
+                validateFieldNamesRecursively(fields, tableName, fieldNames, violations);
             }
         }
 

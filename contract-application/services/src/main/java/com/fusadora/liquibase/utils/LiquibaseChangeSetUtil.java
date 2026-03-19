@@ -6,6 +6,8 @@ import com.fusadora.model.datacontract.PhysicalTable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * com.fusadora.liquibase.utils.LiquibaseChangeSetUtil
@@ -58,18 +60,112 @@ public class LiquibaseChangeSetUtil {
         //Iterate through changesets
         for (int changeSetNumber = 1; changeSetNumber <= aPhysicalTable.getCurrentChangeSetNumber(); changeSetNumber++) {
             // Logic to generate SQL for each changeset
-            // header
-            changeSet.append(getChangesetHeader(aPhysicalTable, changeSetNumber));
             // For the first changeset, create table statement
+            String changeSetSql;
             if (changeSetNumber == 1) {
-                //Create Table statement
-                changeSet.append(getCreateTableStatement(aPhysicalTable, dataSetName));
+                changeSetSql = getCreateTableStatement(aPhysicalTable, dataSetName);
             } else if (changeSetNumber > 1) {
                 // Future changesets handled here (e.g., ALTER TABLE statements)
-                changeSet.append(getAlterTableStatement(aPhysicalTable, dataSetName, changeSetNumber));
+                changeSetSql = getAlterTableStatement(aPhysicalTable, dataSetName, changeSetNumber);
+            } else {
+                changeSetSql = "";
+            }
+
+            if (!changeSetSql.isBlank()) {
+                // header
+                changeSet.append(getChangesetHeader(aPhysicalTable, changeSetNumber));
+                changeSet.append(changeSetSql);
             }
         }
         return changeSet.toString();
+    }
+
+    private static String getTypeOrStructDefinition(PhysicalField field, int changeSetNumber) {
+        List<String> nestedDefinitions = getNestedDefinitionsForChangeSet(field.getNestedFields(), changeSetNumber);
+        if (!nestedDefinitions.isEmpty()) {
+            return "STRUCT<" + String.join(", ", nestedDefinitions) + ">";
+        }
+        return field.getType();
+    }
+
+    private static List<String> getNestedDefinitionsForChangeSet(List<PhysicalField> fields, int changeSetNumber) {
+        List<String> nestedDefinitions = new ArrayList<>();
+        if (fields == null || fields.isEmpty()) {
+            return nestedDefinitions;
+        }
+
+        for (PhysicalField field : fields) {
+            if (field == null || field.getName() == null || field.getChangeSetNumber() != changeSetNumber) {
+                continue;
+            }
+
+            String typeDefinition = getTypeOrStructDefinition(field, changeSetNumber);
+            if (typeDefinition != null) {
+                nestedDefinitions.add(field.getName() + " " + typeDefinition);
+            }
+        }
+        return nestedDefinitions;
+    }
+
+    private static List<String> getCreateColumnDefinitionsForChangeSet(PhysicalTable aPhysicalTable, int changeSetNumber) {
+        List<String> columnDefinitions = new ArrayList<>();
+        if (aPhysicalTable.getPhysicalFields() == null) {
+            return columnDefinitions;
+        }
+
+        for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
+            if (field == null || field.getName() == null || field.getChangeSetNumber() != changeSetNumber) {
+                continue;
+            }
+
+            String typeDefinition = getTypeOrStructDefinition(field, changeSetNumber);
+            if (typeDefinition != null) {
+                columnDefinitions.add(field.getName() + " " + typeDefinition);
+            }
+        }
+        return columnDefinitions;
+    }
+
+    private static void collectAlterColumnsRecursively(List<PhysicalField> fields,
+                                                       int changeSetNumber,
+                                                       String parentPath,
+                                                       boolean parentAddedInChangeSet,
+                                                       List<String> alterColumnDefinitions) {
+        if (fields == null || fields.isEmpty()) {
+            return;
+        }
+
+        for (PhysicalField field : fields) {
+            if (field == null || field.getName() == null) {
+                continue;
+            }
+
+            String qualifiedName = parentPath == null ? field.getName() : parentPath + "." + field.getName();
+            boolean addedInThisChangeSet = false;
+            if (!parentAddedInChangeSet && field.getChangeSetNumber() == changeSetNumber) {
+                String typeDefinition = getTypeOrStructDefinition(field, changeSetNumber);
+                if (typeDefinition != null) {
+                    alterColumnDefinitions.add(qualifiedName + " " + typeDefinition);
+                    addedInThisChangeSet = true;
+                }
+            }
+
+            collectAlterColumnsRecursively(field.getNestedFields(), changeSetNumber, qualifiedName, parentAddedInChangeSet || addedInThisChangeSet, alterColumnDefinitions);
+        }
+    }
+
+    private static List<String> getAlterColumnDefinitionsForChangeSet(PhysicalTable aPhysicalTable, int changeSetNumber) {
+        List<String> alterColumnDefinitions = new ArrayList<>();
+        collectAlterColumnsRecursively(aPhysicalTable.getPhysicalFields(), changeSetNumber, null, false, alterColumnDefinitions);
+        return alterColumnDefinitions;
+    }
+
+    private static String extractColumnName(String alterColumnDefinition) {
+        int firstSpaceIndex = alterColumnDefinition.indexOf(' ');
+        if (firstSpaceIndex < 0) {
+            return alterColumnDefinition;
+        }
+        return alterColumnDefinition.substring(0, firstSpaceIndex);
     }
 
 
@@ -102,6 +198,7 @@ public class LiquibaseChangeSetUtil {
      */
     private static String getCreateTableStatement(PhysicalTable aPhysicalTable, String dataSetName) {
         StringBuilder changeSet = new StringBuilder();
+        List<String> columnDefinitions = getCreateColumnDefinitionsForChangeSet(aPhysicalTable, 1);
         changeSet.append("CREATE TABLE IF NOT EXISTS ")
                 .append(dataSetName)
                 .append(".")
@@ -109,20 +206,16 @@ public class LiquibaseChangeSetUtil {
                 .append(" (")
                 .append(System.lineSeparator());
         //Columns
-        for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
-            if (field.getChangeSetNumber() != 1) {
-                continue;
-            }
+        for (String columnDefinition : columnDefinitions) {
             changeSet.append("    ")
-                    .append(field.getName())
-                    .append(" ")
-                    .append(field.getType());
-
+                    .append(columnDefinition);
             changeSet.append(",")
                     .append(System.lineSeparator());
         }
         //Remove last comma
-        changeSet.setLength(changeSet.length() - 2);
+        if (!columnDefinitions.isEmpty()) {
+            changeSet.setLength(changeSet.length() - 2);
+        }
         changeSet.append(System.lineSeparator())
                 .append(");")
                 .append(System.lineSeparator());
@@ -147,6 +240,11 @@ public class LiquibaseChangeSetUtil {
      * @return A string containing the ALTER TABLE statement.
      */
     private static String getAlterTableStatement(PhysicalTable aPhysicalTable, String dataSetName, int thisChangeSet) {
+        List<String> alterColumnDefinitions = getAlterColumnDefinitionsForChangeSet(aPhysicalTable, thisChangeSet);
+        if (alterColumnDefinitions.isEmpty()) {
+            return "";
+        }
+
         StringBuilder changeSet = new StringBuilder();
         changeSet.append("ALTER TABLE ")
                 .append(dataSetName)
@@ -154,14 +252,9 @@ public class LiquibaseChangeSetUtil {
                 .append(aPhysicalTable.getName())
                 .append(System.lineSeparator());
         //Columns
-        for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
-            if (field.getChangeSetNumber() != thisChangeSet) {
-                continue;
-            }
+        for (String columnDefinition : alterColumnDefinitions) {
             changeSet.append("    ADD COLUMN IF NOT EXISTS ")
-                    .append(field.getName())
-                    .append(" ")
-                    .append(field.getType());
+                    .append(columnDefinition);
             changeSet.append(",")
                     .append(System.lineSeparator());
         }
@@ -171,16 +264,13 @@ public class LiquibaseChangeSetUtil {
                 .append(";")
                 .append(System.lineSeparator());
         //Rollback for alter table
-        for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
-            if (field.getChangeSetNumber() != thisChangeSet) {
-                continue;
-            }
+        for (String columnDefinition : alterColumnDefinitions) {
             changeSet.append("--rollback ALTER TABLE ")
                     .append(dataSetName)
                     .append(".")
                     .append(aPhysicalTable.getName())
                     .append(" DROP COLUMN IF EXISTS ")
-                    .append(field.getName())
+                    .append(extractColumnName(columnDefinition))
                     .append(";")
                     .append(System.lineSeparator());
         }
