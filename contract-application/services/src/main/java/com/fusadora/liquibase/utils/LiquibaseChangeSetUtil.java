@@ -25,6 +25,14 @@ public class LiquibaseChangeSetUtil {
         throw new IllegalStateException("Utility class");
     }
 
+    private static String getDescriptionOptions(String description) {
+        if (description == null || description.isBlank()) {
+            return "";
+        }
+        String escaped = description.replace("'", "''");
+        return " OPTIONS(description='" + escaped + "')";
+    }
+
     /**
      * Generates a Liquibase formatted SQL file for the given PhysicalTable.
      *
@@ -101,26 +109,26 @@ public class LiquibaseChangeSetUtil {
 
             String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
-                nestedDefinitions.add(field.getName() + " " + typeDefinition);
+                nestedDefinitions.add(field.getName() + " " + typeDefinition + getDescriptionOptions(field.getDescription()));
             }
         }
         return nestedDefinitions;
     }
 
-    private static List<String> getCreateColumnDefinitionsForChangeSet(PhysicalTable aPhysicalTable, int changeSetNumber) {
+    private static List<String> getCreateColumnDefinitionsForChangeSet(PhysicalTable aPhysicalTable) {
         List<String> columnDefinitions = new ArrayList<>();
         if (aPhysicalTable.getPhysicalFields() == null) {
             return columnDefinitions;
         }
 
         for (PhysicalField field : aPhysicalTable.getPhysicalFields()) {
-            if (field == null || field.getName() == null || field.getChangeSetNumber() != changeSetNumber) {
+            if (field == null || field.getName() == null || field.getChangeSetNumber() != 1) {
                 continue;
             }
 
             String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
-                columnDefinitions.add(field.getName() + " " + typeDefinition);
+                columnDefinitions.add(field.getName() + " " + typeDefinition + getDescriptionOptions(field.getDescription()));
             }
         }
         return columnDefinitions;
@@ -145,7 +153,7 @@ public class LiquibaseChangeSetUtil {
             if (!parentAddedInChangeSet && field.getChangeSetNumber() == changeSetNumber) {
                 String typeDefinition = getTypeOrStructDefinition(field);
                 if (typeDefinition != null) {
-                    alterColumnDefinitions.add(qualifiedName + " " + typeDefinition);
+                    alterColumnDefinitions.add(qualifiedName + " " + typeDefinition + getDescriptionOptions(field.getDescription()));
                     addedInThisChangeSet = true;
                 }
             }
@@ -198,7 +206,7 @@ public class LiquibaseChangeSetUtil {
      */
     private static String getCreateTableStatement(PhysicalTable aPhysicalTable, String dataSetName) {
         StringBuilder changeSet = new StringBuilder();
-        List<String> columnDefinitions = getCreateColumnDefinitionsForChangeSet(aPhysicalTable, 1);
+        List<String> columnDefinitions = getCreateColumnDefinitionsForChangeSet(aPhysicalTable);
         changeSet.append("CREATE TABLE IF NOT EXISTS ")
                 .append(dataSetName)
                 .append(".")
@@ -217,7 +225,9 @@ public class LiquibaseChangeSetUtil {
             changeSet.setLength(changeSet.length() - 2);
         }
         changeSet.append(System.lineSeparator())
-                .append(");")
+                .append(")")
+                .append(getDescriptionOptions(aPhysicalTable.getDescription()))
+                .append(";")
                 .append(System.lineSeparator());
         //Rollback for create table
         changeSet.append("--rollback DROP TABLE IF EXISTS ")
@@ -263,6 +273,18 @@ public class LiquibaseChangeSetUtil {
         changeSet.append(System.lineSeparator())
                 .append(";")
                 .append(System.lineSeparator());
+
+        if (aPhysicalTable.getDescription() != null && !aPhysicalTable.getDescription().isBlank()) {
+            changeSet.append("ALTER TABLE ")
+                    .append(dataSetName)
+                    .append(".")
+                    .append(aPhysicalTable.getName())
+                    .append(" SET")
+                    .append(getDescriptionOptions(aPhysicalTable.getDescription()))
+                    .append(";")
+                    .append(System.lineSeparator());
+        }
+
         //Rollback for alter table
         for (String columnDefinition : alterColumnDefinitions) {
             changeSet.append("--rollback ALTER TABLE ")

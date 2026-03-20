@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquibaseChangeSetUtilTest {
@@ -19,6 +20,7 @@ class LiquibaseChangeSetUtilTest {
         field1.setName("id");
         field1.setType("INT64");
         field1.setChangeSetNumber(1);
+        field1.setDescription("Primary key");
 
         PhysicalField field2 = new PhysicalField();
         field2.setName("name");
@@ -29,7 +31,9 @@ class LiquibaseChangeSetUtilTest {
         field2Nested.setName("initial");
         field2Nested.setType("STRING");
         field2Nested.setChangeSetNumber(1);
+        field2Nested.setDescription("Initial character");
         field2.setNestedFields(List.of(field2Nested));
+        field2.setDescription("Name record");
 
         PhysicalField field3 = new PhysicalField();
         field3.setName("address");
@@ -40,12 +44,15 @@ class LiquibaseChangeSetUtilTest {
         field3Nested.setName("line1");
         field3Nested.setType("STRING");
         field3Nested.setChangeSetNumber(2);
+        field3Nested.setDescription("Address line 1");
         field3.setNestedFields(List.of(field3Nested));
+        field3.setDescription("Address struct");
 
         PhysicalField field4 = new PhysicalField();
         field4.setName("city");
         field4.setType("STRING");
         field4.setChangeSetNumber(2);
+        field4.setDescription("City name");
 
         PhysicalField field5 = new PhysicalField();
         field5.setName("country");
@@ -56,10 +63,13 @@ class LiquibaseChangeSetUtilTest {
         field5Nested.setName("code");
         field5Nested.setType("STRING");
         field5Nested.setChangeSetNumber(3);
+        field5Nested.setDescription("Country code");
         field5.setNestedFields(List.of(field5Nested));
+        field5.setDescription("Country struct");
 
         PhysicalTable table = new PhysicalTable();
         table.setName("test_table");
+        table.setDescription("Test table description");
         table.setPhysicalFields(Arrays.asList(field1, field2, field3, field4, field5));
         table.setCurrentChangeSetNumber(3);
 
@@ -174,37 +184,44 @@ class LiquibaseChangeSetUtilTest {
         orderLine.setName("order_line");
         orderLine.setType("STRUCT");
         orderLine.setChangeSetNumber(3);
+        orderLine.setDescription("Order line details");
 
         PhysicalField sku = new PhysicalField();
         sku.setName("sku");
         sku.setType("STRING");
         sku.setChangeSetNumber(1);
+        sku.setDescription("Stock keeping unit");
 
         PhysicalField quantity = new PhysicalField();
         quantity.setName("quantity");
         quantity.setType("INT64");
         quantity.setChangeSetNumber(1);
+        quantity.setDescription("Quantity ordered");
 
         PhysicalField pricing = new PhysicalField();
         pricing.setName("pricing");
         pricing.setType("STRUCT");
         pricing.setChangeSetNumber(1);
+        pricing.setDescription("Pricing details");
 
         PhysicalField amount = new PhysicalField();
         amount.setName("amount");
         amount.setType("NUMERIC");
         amount.setChangeSetNumber(1);
+        amount.setDescription("Line amount");
 
         PhysicalField currency = new PhysicalField();
         currency.setName("currency");
         currency.setType("STRING");
         currency.setChangeSetNumber(1);
+        currency.setDescription("Currency code");
 
         pricing.setNestedFields(List.of(amount, currency));
         orderLine.setNestedFields(List.of(sku, quantity, pricing));
 
         PhysicalTable table = new PhysicalTable();
         table.setName("sales_order_1");
+        table.setDescription("Sales order table");
         table.setPhysicalFields(Arrays.asList(id, orderLine));
         table.setCurrentChangeSetNumber(3);
 
@@ -216,14 +233,16 @@ class LiquibaseChangeSetUtilTest {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
 
         assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS dataset.test_table"));
-        assertTrue(sql.contains("id INT64"));
-        assertTrue(sql.contains("name STRUCT<initial STRING>"));
+        assertTrue(sql.contains("id INT64 OPTIONS(description='Primary key')"));
+        assertTrue(sql.contains("name STRUCT<initial STRING OPTIONS(description='Initial character')> OPTIONS(description='Name record')"));
+        assertTrue(sql.contains(") OPTIONS(description='Test table description');"));
         assertTrue(sql.contains("--rollback DROP TABLE IF EXISTS dataset.test_table;"));
 
         assertTrue(sql.contains("ALTER TABLE dataset.test_table"));
-        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS address STRUCT<line1 STRING>"));
-        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS country STRUCT<code STRING>"));
-        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS city STRING"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS address STRUCT<line1 STRING OPTIONS(description='Address line 1')> OPTIONS(description='Address struct')"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS country STRUCT<code STRING OPTIONS(description='Country code')> OPTIONS(description='Country struct')"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description='City name')"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table SET OPTIONS(description='Test table description');"));
         assertTrue(sql.contains(";"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS address;"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS country;"));
@@ -259,8 +278,62 @@ class LiquibaseChangeSetUtilTest {
 
         assertTrue(sql.contains("--changeset fusadora:sales_order_1_3"));
         assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1"));
-        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS order_line STRUCT<sku STRING, quantity INT64, pricing STRUCT<amount NUMERIC, currency STRING>>"));
+        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS order_line STRUCT<sku STRING OPTIONS(description='Stock keeping unit'), quantity INT64 OPTIONS(description='Quantity ordered'), pricing STRUCT<amount NUMERIC OPTIONS(description='Line amount'), currency STRING OPTIONS(description='Currency code')> OPTIONS(description='Pricing details')> OPTIONS(description='Order line details')"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 SET OPTIONS(description='Sales order table');"));
         assertTrue(sql.contains("--rollback ALTER TABLE raw_data.sales_order_1 DROP COLUMN IF EXISTS order_line;"));
+    }
+
+    @Test
+    void testGetLiquibaseChangeSetSql_DescriptionEscaping() {
+        PhysicalField id = new PhysicalField();
+        id.setName("id");
+        id.setType("INT64");
+        id.setChangeSetNumber(1);
+        id.setDescription("Order's identifier");
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("orders");
+        table.setDescription("Customer's orders");
+        table.setPhysicalFields(List.of(id));
+        table.setCurrentChangeSetNumber(1);
+
+        String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(table, "dataset");
+
+        assertTrue(sql.contains("id INT64 OPTIONS(description='Order''s identifier')"));
+        assertTrue(sql.contains(") OPTIONS(description='Customer''s orders');"));
+    }
+
+    @Test
+    void testGetLiquibaseChangeSetSql_OmitsDescriptionOptionsWhenNullOrBlank() {
+        PhysicalField id = new PhysicalField();
+        id.setName("id");
+        id.setType("INT64");
+        id.setChangeSetNumber(1);
+        id.setDescription(null);
+
+        PhysicalField city = new PhysicalField();
+        city.setName("city");
+        city.setType("STRING");
+        city.setChangeSetNumber(2);
+        city.setDescription("   ");
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("description_omission_table");
+        table.setDescription(" ");
+        table.setPhysicalFields(List.of(id, city));
+        table.setCurrentChangeSetNumber(2);
+
+        String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(table, "dataset");
+
+        assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS dataset.description_omission_table"));
+        assertTrue(sql.contains("id INT64"));
+        assertFalse(sql.contains("id INT64 OPTIONS(description="));
+
+        assertTrue(sql.contains("ALTER TABLE dataset.description_omission_table"));
+        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS city STRING"));
+        assertFalse(sql.contains("ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description="));
+
+        assertFalse(sql.contains("SET OPTIONS(description="));
     }
 
     @Test
@@ -284,9 +357,9 @@ class LiquibaseChangeSetUtilTest {
 
         String content = Files.readString(expectedFile);
         assertTrue(content.contains("CREATE TABLE IF NOT EXISTS test_dataset.test_table"));
-        assertTrue(content.contains("id INT64"));
-        assertTrue(content.contains("name STRUCT<initial STRING>"));
-        assertTrue(content.contains("address STRUCT<line1 STRING>"));
+        assertTrue(content.contains("id INT64 OPTIONS(description='Primary key')"));
+        assertTrue(content.contains("name STRUCT<initial STRING OPTIONS(description='Initial character')> OPTIONS(description='Name record')"));
+        assertTrue(content.contains("address STRUCT<line1 STRING OPTIONS(description='Address line 1')> OPTIONS(description='Address struct')"));
 
         // Cleanup
         Files.deleteIfExists(expectedFile);
