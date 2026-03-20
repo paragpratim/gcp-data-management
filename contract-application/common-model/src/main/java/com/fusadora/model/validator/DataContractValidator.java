@@ -27,6 +27,14 @@ public class DataContractValidator implements ConstraintValidator<ValidDataContr
 
     private static final String IN_TABLE = " in table ";
 
+    /**
+     * Recursively validates field names for uniqueness and checks for valid types and nested fields.
+     *
+     * @param fields Fields to validate
+     * @param tableName String representing the name of the table for error messages
+     * @param fieldNames Set to track unique field names within the current table
+     * @param violations List to collect any validation violation messages
+     */
     private void validateFieldNamesRecursively(List<PhysicalField> fields,
                                                String tableName,
                                                Set<String> fieldNames,
@@ -52,6 +60,15 @@ public class DataContractValidator implements ConstraintValidator<ValidDataContr
         }
     }
 
+    /**
+     * Validates that the field type is supported and that STRUCT/ARRAY types have nested fields defined.
+     * Recursively validates nested fields as well.
+     *
+     * @param field PhysicalField to validate
+     * @param tableName String representing the name of the table for error messages
+     * @param fieldPath String representing the path to the current field for error messages
+     * @param violations List to collect any validation violation messages
+     */
     private void validateTypeAndNestedFieldsRecursively(PhysicalField field,
                                                         String tableName,
                                                         String fieldPath,
@@ -83,6 +100,15 @@ public class DataContractValidator implements ConstraintValidator<ValidDataContr
         }
     }
 
+    /**
+     * Validates the DataContract for unique table names and unique column names within each table.
+     * If any violations are found, they are added to the ConstraintValidatorContext.
+     * The method returns true if the DataContract is valid, and false if there are any violations.
+     *
+     * @param contract A DataContract object to validate
+     * @param context Context for adding constraint violations if the DataContract is invalid
+     * @return boolean indicating whether the DataContract is valid
+     */
     @Override
     @SuppressWarnings("java:S3776") // Suppress cognitive complexity warning
     public boolean isValid(DataContract contract, ConstraintValidatorContext context) {
