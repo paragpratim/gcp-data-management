@@ -5,7 +5,11 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Supported BigQuery column data types for physical fields.
+ * com.fusadora.model.datacontract.BigQueryFieldType
+ * <p>Description: This enum represent list of supported BigQuery column data types for physical fields.</p>
+ *
+ * @author Parag Ghosh
+ * @since 20/03/2026
  */
 public enum BigQueryFieldType {
     STRING,
