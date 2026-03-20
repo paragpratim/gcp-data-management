@@ -202,9 +202,12 @@ public class LiquibaseChangeSetUtil {
 
     /**
      * Generates a dedicated description changeset header, e.g. sales_order_1_1_desc.
+     * Uses runOnChange:true so Liquibase re-applies this changeset whenever the
+     * description text changes, without causing a checksum mismatch error.
+     * The underlying ALTER TABLE SET OPTIONS is idempotent and safe to re-run.
      */
     private static String getDescriptionChangesetHeader(PhysicalTable aPhysicalTable) {
-        return "--changeset " + CHANGESET_AUTHOR + ":" + aPhysicalTable.getName() + "_1_desc" + System.lineSeparator();
+        return "--changeset " + CHANGESET_AUTHOR + ":" + aPhysicalTable.getName() + "_1_desc runOnChange:true" + System.lineSeparator();
     }
 
     /**
