@@ -33,6 +33,14 @@ class DataContractValidatorTest {
         return field;
     }
 
+    private static PhysicalField arrayField(List<PhysicalField> nestedFields) {
+        PhysicalField field = new PhysicalField();
+        field.setName("items");
+        field.setType("ARRAY");
+        field.setNestedFields(nestedFields);
+        return field;
+    }
+
     @Test
     void isValid_returnsTrue_whenDataContractIsNull() {
         DataContractValidator validator = new DataContractValidator();
@@ -150,6 +158,33 @@ class DataContractValidatorTest {
     }
 
     @Test
+    void isValid_returnsFalse_whenDuplicateColumnNamesExistDeepInNestedHierarchy() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField deepNested1 = primitiveField("code", "STRING");
+        PhysicalField deepNested2 = primitiveField("code", "INT64");
+
+        PhysicalField levelTwoParent1 = structField("region", List.of(deepNested1));
+        PhysicalField levelTwoParent2 = structField("territory", List.of(deepNested2));
+
+        PhysicalField levelOneParent1 = structField("sales", List.of(levelTwoParent1));
+        PhysicalField levelOneParent2 = structField("support", List.of(levelTwoParent2));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(levelOneParent1, levelOneParent2));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
     void isValid_returnsFalse_whenFieldTypeIsNotBigQuerySupported() {
         DataContractValidator validator = new DataContractValidator();
         DataContract contract = new DataContract();
@@ -207,5 +242,25 @@ class DataContractValidatorTest {
         when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
 
         assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
+    void isValid_returnsTrue_whenDeeplyNestedStructAndArrayFieldsAreValid() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField amount = primitiveField("amount", "NUMERIC");
+        PhysicalField sku = primitiveField("sku", "STRING");
+        PhysicalField metadata = structField("metadata", List.of(amount, sku));
+        PhysicalField items = arrayField(List.of(metadata));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(items));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        assertTrue(validator.isValid(contract, null));
     }
 }
