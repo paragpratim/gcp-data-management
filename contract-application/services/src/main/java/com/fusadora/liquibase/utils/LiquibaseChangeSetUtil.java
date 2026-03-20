@@ -20,17 +20,20 @@ import java.util.List;
 public class LiquibaseChangeSetUtil {
 
     private static final String CHANGESET_AUTHOR = "fusadora";
+    private static final String EMPTY_DESCRIPTION = "''";
+    private static final String ALTER_TABLE_PREFIX = "ALTER TABLE ";
+    private static final String ROLLBACK_ALTER_TABLE_PREFIX = "--rollback ALTER TABLE ";
+    private static final String SET_OPTIONS_DESCRIPTION_PREFIX = " SET OPTIONS(description=";
 
     private LiquibaseChangeSetUtil() {
         throw new IllegalStateException("Utility class");
     }
 
-    private static String getDescriptionOptions(String description) {
+    private static String getEscapedDescriptionLiteral(String description) {
         if (description == null || description.isBlank()) {
-            return "";
+            return EMPTY_DESCRIPTION;
         }
-        String escaped = description.replace("'", "''");
-        return " OPTIONS(description='" + escaped + "')";
+        return "'" + description.replace("'", "''") + "'";
     }
 
     /**
@@ -79,14 +82,12 @@ public class LiquibaseChangeSetUtil {
                 changeSet.append(changeSetSql);
             }
 
-            // Emit table description as a dedicated immutable changeset right after CREATE TABLE
-            if (changeSetNumber == 1) {
-                String descriptionSql = getTableDescriptionStatement(aPhysicalTable, dataSetName);
-                if (!descriptionSql.isBlank()) {
-                    changeSet.append(getDescriptionChangesetHeader(aPhysicalTable));
-                    changeSet.append(descriptionSql);
-                }
-            }
+        }
+
+        String descriptionSql = getDescriptionChangeSetSql(aPhysicalTable, dataSetName);
+        if (!descriptionSql.isBlank()) {
+            changeSet.append(getDescriptionChangesetHeader(aPhysicalTable));
+            changeSet.append(descriptionSql);
         }
         return changeSet.toString();
     }
@@ -146,7 +147,7 @@ public class LiquibaseChangeSetUtil {
 
             String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
-                nestedDefinitions.add(field.getName() + " " + typeDefinition + getDescriptionOptions(field.getDescription()));
+                nestedDefinitions.add(field.getName() + " " + typeDefinition);
             }
         }
         return nestedDefinitions;
@@ -165,7 +166,7 @@ public class LiquibaseChangeSetUtil {
 
             String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
-                columnDefinitions.add(field.getName() + " " + typeDefinition + getDescriptionOptions(field.getDescription()));
+                columnDefinitions.add(field.getName() + " " + typeDefinition);
             }
         }
         return columnDefinitions;
@@ -190,7 +191,7 @@ public class LiquibaseChangeSetUtil {
             if (!parentAddedInChangeSet && field.getChangeSetNumber() == changeSetNumber) {
                 String typeDefinition = getTypeOrStructDefinition(field);
                 if (typeDefinition != null) {
-                    alterColumnDefinitions.add(qualifiedName + " " + typeDefinition + getDescriptionOptions(field.getDescription()));
+                    alterColumnDefinitions.add(qualifiedName + " " + typeDefinition);
                     addedInThisChangeSet = true;
                 }
             }
@@ -241,7 +242,7 @@ public class LiquibaseChangeSetUtil {
      * The underlying ALTER TABLE SET OPTIONS is idempotent and safe to re-run.
      */
     private static String getDescriptionChangesetHeader(PhysicalTable aPhysicalTable) {
-        return "--changeset " + CHANGESET_AUTHOR + ":" + aPhysicalTable.getName() + "_1_desc runOnChange:true" + System.lineSeparator();
+        return "--changeset " + CHANGESET_AUTHOR + ":" + aPhysicalTable.getName() + "_desc runOnChange:true" + System.lineSeparator();
     }
 
     /**
@@ -286,25 +287,52 @@ public class LiquibaseChangeSetUtil {
         return changeSet.toString();
     }
 
-    /**
-     * Generates a standalone ALTER TABLE SET OPTIONS statement for the table description.
-     * This is emitted as a separate dedicated changeset so the CREATE TABLE changeset
-     * remains permanently immutable regardless of description content.
-     *
-     * @param aPhysicalTable The PhysicalTable object containing table details.
-     * @param dataSetName    The dataset name where the table resides.
-     * @return A string containing the ALTER TABLE SET OPTIONS statement, or blank if no description.
-     */
-    private static String getTableDescriptionStatement(PhysicalTable aPhysicalTable, String dataSetName) {
-        String descriptionOptions = getDescriptionOptions(aPhysicalTable.getDescription());
-        if (descriptionOptions.isBlank()) {
-            return "";
+    private static void collectColumnDescriptionStatementsRecursively(List<PhysicalField> fields,
+                                                                     String dataSetName,
+                                                                     String tableName,
+                                                                     String parentPath,
+                                                                     List<String> statements,
+                                                                     List<String> rollbacks) {
+        if (fields == null || fields.isEmpty()) {
+            return;
         }
-        return "ALTER TABLE " + dataSetName + "." + aPhysicalTable.getName()
-                + " SET" + descriptionOptions + ";" + System.lineSeparator()
-                + "--rollback ALTER TABLE " + dataSetName + "." + aPhysicalTable.getName()
-                + " SET OPTIONS(description='');" + System.lineSeparator()
-                + System.lineSeparator();
+
+        for (PhysicalField field : fields) {
+            if (field == null || field.getName() == null || field.getName().isBlank()) {
+                continue;
+            }
+
+            String qualifiedName = parentPath == null ? field.getName() : parentPath + "." + field.getName();
+            statements.add(ALTER_TABLE_PREFIX + dataSetName + "." + tableName
+                    + " ALTER COLUMN " + qualifiedName
+                    + SET_OPTIONS_DESCRIPTION_PREFIX + getEscapedDescriptionLiteral(field.getDescription()) + ");");
+            rollbacks.add(ROLLBACK_ALTER_TABLE_PREFIX + dataSetName + "." + tableName
+                    + " ALTER COLUMN " + qualifiedName + SET_OPTIONS_DESCRIPTION_PREFIX + EMPTY_DESCRIPTION + ");");
+
+            collectColumnDescriptionStatementsRecursively(field.getNestedFields(), dataSetName, tableName, qualifiedName, statements, rollbacks);
+        }
+    }
+
+    private static String getDescriptionChangeSetSql(PhysicalTable aPhysicalTable, String dataSetName) {
+        List<String> statements = new ArrayList<>();
+        List<String> rollbacks = new ArrayList<>();
+
+        statements.add(ALTER_TABLE_PREFIX + dataSetName + "." + aPhysicalTable.getName()
+                + SET_OPTIONS_DESCRIPTION_PREFIX + getEscapedDescriptionLiteral(aPhysicalTable.getDescription()) + ");");
+        rollbacks.add(ROLLBACK_ALTER_TABLE_PREFIX + dataSetName + "." + aPhysicalTable.getName()
+                + SET_OPTIONS_DESCRIPTION_PREFIX + EMPTY_DESCRIPTION + ");");
+
+        collectColumnDescriptionStatementsRecursively(aPhysicalTable.getPhysicalFields(), dataSetName, aPhysicalTable.getName(), null, statements, rollbacks);
+
+        StringBuilder changeSet = new StringBuilder();
+        for (String statement : statements) {
+            changeSet.append(statement).append(System.lineSeparator());
+        }
+        for (String rollback : rollbacks) {
+            changeSet.append(rollback).append(System.lineSeparator());
+        }
+        changeSet.append(System.lineSeparator());
+        return changeSet.toString();
     }
 
     /**

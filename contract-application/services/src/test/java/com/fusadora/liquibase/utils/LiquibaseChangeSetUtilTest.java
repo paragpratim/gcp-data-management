@@ -284,24 +284,33 @@ class LiquibaseChangeSetUtilTest {
     void testGetLiquibaseChangeSetSql_CreateTable() {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
 
-        // CREATE TABLE must have no description OPTIONS -- stays permanently immutable
+        // Structural changesets must stay description-free and immutable
         assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS dataset.test_table"));
-        assertTrue(sql.contains("id INT64 OPTIONS(description='Primary key')"));
-        assertTrue(sql.contains("name STRUCT<initial STRING OPTIONS(description='Initial character')> OPTIONS(description='Name record')"));
-        assertFalse(sql.contains(") OPTIONS(description='Test table description');"));
+        assertTrue(sql.contains("id INT64"));
+        assertTrue(sql.contains("name STRUCT<initial STRING>"));
+        assertFalse(sql.contains("id INT64 OPTIONS(description='Primary key')"));
+        assertFalse(sql.contains("name STRUCT<initial STRING OPTIONS(description='Initial character')> OPTIONS(description='Name record')"));
         assertTrue(sql.contains(");"));
         assertTrue(sql.contains("--rollback DROP TABLE IF EXISTS dataset.test_table;"));
 
-        // Table description must be in a dedicated _1_desc changeset with runOnChange:true
-        assertTrue(sql.contains("--changeset fusadora:test_table_1_desc runOnChange:true"));
+        // Dedicated mutable description changeset carries table and column descriptions
+        assertTrue(sql.contains("--changeset fusadora:test_table_desc runOnChange:true"));
         assertTrue(sql.contains("ALTER TABLE dataset.test_table SET OPTIONS(description='Test table description');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN id SET OPTIONS(description='Primary key');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN name SET OPTIONS(description='Name record');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN name.initial SET OPTIONS(description='Initial character');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN address SET OPTIONS(description='Address struct');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN address.line1 SET OPTIONS(description='Address line 1');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN city SET OPTIONS(description='City name');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN country SET OPTIONS(description='Country struct');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.test_table ALTER COLUMN country.code SET OPTIONS(description='Country code');"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table SET OPTIONS(description='');"));
 
         // Alter changesets for new columns
         assertTrue(sql.contains("ALTER TABLE dataset.test_table"));
-        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS address STRUCT<line1 STRING OPTIONS(description='Address line 1')> OPTIONS(description='Address struct')"));
-        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS country STRUCT<code STRING OPTIONS(description='Country code')> OPTIONS(description='Country struct')"));
-        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description='City name')"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS address STRUCT<line1 STRING>"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS country STRUCT<code STRING>"));
+        assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS city STRING"));
         assertTrue(sql.contains(";"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS address;"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS country;"));
@@ -346,10 +355,16 @@ class LiquibaseChangeSetUtilTest {
 
         assertTrue(sql.contains("--changeset fusadora:sales_order_1_3"));
         assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1"));
-        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS order_line STRUCT<sku STRING OPTIONS(description='Stock keeping unit'), quantity INT64 OPTIONS(description='Quantity ordered'), pricing STRUCT<amount NUMERIC OPTIONS(description='Line amount'), currency STRING OPTIONS(description='Currency code')> OPTIONS(description='Pricing details')> OPTIONS(description='Order line details')"));
-        // Table description is in its own _1_desc changeset with runOnChange:true
-        assertTrue(sql.contains("--changeset fusadora:sales_order_1_1_desc runOnChange:true"));
+        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS order_line STRUCT<sku STRING, quantity INT64, pricing STRUCT<amount NUMERIC, currency STRING>>"));
+        // All descriptions are in one stable mutable _desc changeset
+        assertTrue(sql.contains("--changeset fusadora:sales_order_1_desc runOnChange:true"));
         assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 SET OPTIONS(description='Sales order table');"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 ALTER COLUMN order_line SET OPTIONS(description='Order line details');"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 ALTER COLUMN order_line.sku SET OPTIONS(description='Stock keeping unit');"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 ALTER COLUMN order_line.quantity SET OPTIONS(description='Quantity ordered');"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 ALTER COLUMN order_line.pricing SET OPTIONS(description='Pricing details');"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 ALTER COLUMN order_line.pricing.amount SET OPTIONS(description='Line amount');"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 ALTER COLUMN order_line.pricing.currency SET OPTIONS(description='Currency code');"));
         assertTrue(sql.contains("--rollback ALTER TABLE raw_data.sales_order_1 DROP COLUMN IF EXISTS order_line;"));
     }
 
@@ -369,11 +384,11 @@ class LiquibaseChangeSetUtilTest {
 
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(table, "dataset");
 
-        assertTrue(sql.contains("id INT64 OPTIONS(description='Order''s identifier')"));
-        // Table description must be in the dedicated _1_desc changeset, not in CREATE TABLE body
-        assertFalse(sql.contains(") OPTIONS(description='Customer''s orders');"));
-        assertTrue(sql.contains("--changeset fusadora:orders_1_desc runOnChange:true"));
+        assertTrue(sql.contains("id INT64"));
+        assertFalse(sql.contains("id INT64 OPTIONS(description='Order''s identifier')"));
+        assertTrue(sql.contains("--changeset fusadora:orders_desc runOnChange:true"));
         assertTrue(sql.contains("ALTER TABLE dataset.orders SET OPTIONS(description='Customer''s orders');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.orders ALTER COLUMN id SET OPTIONS(description='Order''s identifier');"));
     }
 
     @Test
@@ -406,24 +421,27 @@ class LiquibaseChangeSetUtilTest {
         assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS city STRING"));
         assertFalse(sql.contains("ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description="));
 
-        assertFalse(sql.contains("SET OPTIONS(description="));
+        assertTrue(sql.contains("--changeset fusadora:description_omission_table_desc runOnChange:true"));
+        assertTrue(sql.contains("ALTER TABLE dataset.description_omission_table SET OPTIONS(description='');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.description_omission_table ALTER COLUMN id SET OPTIONS(description='');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.description_omission_table ALTER COLUMN city SET OPTIONS(description='');"));
     }
 
     @Test
     void testGetLiquibaseChangeSetSql_TableDescriptionIsOnlyInDedicatedDescChangeset() {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
 
-        // Description must NOT appear inside CREATE TABLE body
         assertFalse(sql.contains(") OPTIONS(description='Test table description');"));
+        assertFalse(sql.contains("ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description='City name')"));
 
-        // Description must appear exactly once in the dedicated _1_desc changeset with runOnChange:true
-        assertTrue(sql.contains("--changeset fusadora:test_table_1_desc runOnChange:true"));
+        assertTrue(sql.contains("--changeset fusadora:test_table_desc runOnChange:true"));
         assertEquals(1, countOccurrences(sql, "ALTER TABLE dataset.test_table SET OPTIONS(description='Test table description');"));
+        assertEquals(1, countOccurrences(sql, "ALTER TABLE dataset.test_table ALTER COLUMN id SET OPTIONS(description='Primary key');"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table SET OPTIONS(description='');"));
     }
 
     @Test
-    void testGetLiquibaseChangeSetSql_NoDescChangesetWhenTableDescriptionIsAbsent() {
+    void testGetLiquibaseChangeSetSql_DescChangesetStillExistsWhenDescriptionsAreAbsent() {
         PhysicalField id = new PhysicalField();
         id.setName("id");
         id.setType("INT64");
@@ -438,33 +456,37 @@ class LiquibaseChangeSetUtilTest {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(table, "dataset");
 
         assertTrue(sql.contains("--changeset fusadora:no_desc_table_1"));
-        assertFalse(sql.contains("_1_desc"));
-        assertFalse(sql.contains("SET OPTIONS(description="));
+        assertTrue(sql.contains("--changeset fusadora:no_desc_table_desc runOnChange:true"));
+        assertTrue(sql.contains("ALTER TABLE dataset.no_desc_table SET OPTIONS(description='');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.no_desc_table ALTER COLUMN id SET OPTIONS(description='');"));
     }
 
     @Test
-    void testGetLiquibaseChangeSetSql_DescChangesetAppearsAfterCreateAndBeforeAlter() {
+    void testGetLiquibaseChangeSetSql_DescChangesetAppearsAfterAllStructuralChanges() {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
 
         int createPos = sql.indexOf("--changeset fusadora:test_table_1" + System.lineSeparator());
-        int descPos   = sql.indexOf("--changeset fusadora:test_table_1_desc runOnChange:true");
-        int alterPos  = sql.indexOf("--changeset fusadora:test_table_2");
+        int alterPos2 = sql.indexOf("--changeset fusadora:test_table_2");
+        int alterPos3 = sql.indexOf("--changeset fusadora:test_table_3");
+        int descPos   = sql.indexOf("--changeset fusadora:test_table_desc runOnChange:true");
 
         assertTrue(createPos >= 0, "CREATE TABLE changeset must exist");
-        assertTrue(descPos   >= 0, "_1_desc changeset must exist");
-        assertTrue(alterPos  >= 0, "ALTER changeset _2 must exist");
+        assertTrue(alterPos2 >= 0, "ALTER changeset _2 must exist");
+        assertTrue(alterPos3 >= 0, "ALTER changeset _3 must exist");
+        assertTrue(descPos   >= 0, "Description changeset must exist");
 
-        assertTrue(createPos < descPos,  "_1_desc must come after the CREATE TABLE changeset");
-        assertTrue(descPos   < alterPos, "_1_desc must come before the first ALTER changeset");
+        assertTrue(createPos < alterPos2, "CREATE TABLE changeset must come before ALTER changesets");
+        assertTrue(alterPos2 < alterPos3, "ALTER changesets must stay ordered");
+        assertTrue(alterPos3 < descPos, "Description changeset must come after all structural changesets");
     }
 
     @Test
     void testGetLiquibaseChangeSetSql_RunOnChangeIsOnlyOnDescChangeset() {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
 
-        // Exactly one runOnChange:true — only the _1_desc changeset
+        // Exactly one runOnChange:true — only the stable description changeset
         assertEquals(1, countOccurrences(sql, "runOnChange:true"));
-        assertTrue(sql.contains("--changeset fusadora:test_table_1_desc runOnChange:true"));
+        assertTrue(sql.contains("--changeset fusadora:test_table_desc runOnChange:true"));
 
         // Structural changesets must NOT carry runOnChange
         assertFalse(sql.contains("--changeset fusadora:test_table_1 runOnChange"));
@@ -488,7 +510,7 @@ class LiquibaseChangeSetUtilTest {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(table, "dataset");
 
         assertTrue(sql.contains("ALTER TABLE dataset.rollback_desc_table SET OPTIONS(description='My table description');"));
-        // Rollback must explicitly clear the description to an empty string
+        assertTrue(sql.contains("ALTER TABLE dataset.rollback_desc_table ALTER COLUMN id SET OPTIONS(description='');"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.rollback_desc_table SET OPTIONS(description='');"));
     }
 
@@ -508,15 +530,17 @@ class LiquibaseChangeSetUtilTest {
 
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(table, "dataset");
 
-        // CREATE TABLE — clean, no table OPTIONS
+        // CREATE TABLE — fully clean, no description OPTIONS anywhere
         assertTrue(sql.contains("CREATE TABLE IF NOT EXISTS dataset.simple_table"));
-        assertTrue(sql.contains("id INT64 OPTIONS(description='Unique identifier')"));
+        assertTrue(sql.contains("id INT64"));
+        assertFalse(sql.contains("id INT64 OPTIONS(description='Unique identifier')"));
         assertFalse(sql.contains(") OPTIONS(description='A simple table');"));
         assertTrue(sql.contains("--rollback DROP TABLE IF EXISTS dataset.simple_table;"));
 
-        // Description in dedicated _1_desc changeset
-        assertTrue(sql.contains("--changeset fusadora:simple_table_1_desc runOnChange:true"));
+        // Descriptions live in dedicated mutable _desc changeset
+        assertTrue(sql.contains("--changeset fusadora:simple_table_desc runOnChange:true"));
         assertTrue(sql.contains("ALTER TABLE dataset.simple_table SET OPTIONS(description='A simple table');"));
+        assertTrue(sql.contains("ALTER TABLE dataset.simple_table ALTER COLUMN id SET OPTIONS(description='Unique identifier');"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.simple_table SET OPTIONS(description='');"));
 
         // No ALTER TABLE for columns — only one changeset
@@ -544,9 +568,11 @@ class LiquibaseChangeSetUtilTest {
 
         String content = Files.readString(expectedFile);
         assertTrue(content.contains("CREATE TABLE IF NOT EXISTS test_dataset.test_table"));
-        assertTrue(content.contains("id INT64 OPTIONS(description='Primary key')"));
-        assertTrue(content.contains("name STRUCT<initial STRING OPTIONS(description='Initial character')> OPTIONS(description='Name record')"));
-        assertTrue(content.contains("address STRUCT<line1 STRING OPTIONS(description='Address line 1')> OPTIONS(description='Address struct')"));
+        assertTrue(content.contains("id INT64"));
+        assertTrue(content.contains("name STRUCT<initial STRING>"));
+        assertTrue(content.contains("address STRUCT<line1 STRING>"));
+        assertTrue(content.contains("--changeset fusadora:test_table_desc runOnChange:true"));
+        assertTrue(content.contains("ALTER TABLE test_dataset.test_table ALTER COLUMN id SET OPTIONS(description='Primary key');"));
 
         // Cleanup
         Files.deleteIfExists(expectedFile);
