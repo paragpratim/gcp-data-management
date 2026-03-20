@@ -1,4 +1,5 @@
-package com.fusadora.liquibase.utils;
+package com.fusadora.liquibase.utils.changeset;
+
 
 import com.fusadora.model.datacontract.PhysicalField;
 import com.fusadora.model.datacontract.PhysicalTable;
@@ -630,3 +631,4 @@ class LiquibaseChangeSetUtilTest {
         Files.deleteIfExists(tempDir);
     }
 }
+
