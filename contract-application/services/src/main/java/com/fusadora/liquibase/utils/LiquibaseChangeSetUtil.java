@@ -67,22 +67,25 @@ public class LiquibaseChangeSetUtil {
 
         //Iterate through changesets
         for (int changeSetNumber = 1; changeSetNumber <= aPhysicalTable.getCurrentChangeSetNumber(); changeSetNumber++) {
-            // Logic to generate SQL for each changeset
-            // For the first changeset, create table statement
             String changeSetSql;
             if (changeSetNumber == 1) {
                 changeSetSql = getCreateTableStatement(aPhysicalTable, dataSetName);
-            } else if (changeSetNumber > 1) {
-                // Future changesets handled here (e.g., ALTER TABLE statements)
-                changeSetSql = getAlterTableStatement(aPhysicalTable, dataSetName, changeSetNumber);
             } else {
-                changeSetSql = "";
+                changeSetSql = getAlterTableStatement(aPhysicalTable, dataSetName, changeSetNumber);
             }
 
             if (!changeSetSql.isBlank()) {
-                // header
                 changeSet.append(getChangesetHeader(aPhysicalTable, changeSetNumber));
                 changeSet.append(changeSetSql);
+            }
+
+            // Emit table description as a dedicated immutable changeset right after CREATE TABLE
+            if (changeSetNumber == 1) {
+                String descriptionSql = getTableDescriptionStatement(aPhysicalTable, dataSetName);
+                if (!descriptionSql.isBlank()) {
+                    changeSet.append(getDescriptionChangesetHeader(aPhysicalTable));
+                    changeSet.append(descriptionSql);
+                }
             }
         }
         return changeSet.toString();
@@ -198,6 +201,13 @@ public class LiquibaseChangeSetUtil {
     }
 
     /**
+     * Generates a dedicated description changeset header, e.g. sales_order_1_1_desc.
+     */
+    private static String getDescriptionChangesetHeader(PhysicalTable aPhysicalTable) {
+        return "--changeset " + CHANGESET_AUTHOR + ":" + aPhysicalTable.getName() + "_1_desc" + System.lineSeparator();
+    }
+
+    /**
      * Generates the CREATE TABLE statement for the first changeset.
      *
      * @param aPhysicalTable The PhysicalTable object containing table details.
@@ -225,9 +235,7 @@ public class LiquibaseChangeSetUtil {
             changeSet.setLength(changeSet.length() - 2);
         }
         changeSet.append(System.lineSeparator())
-                .append(")")
-                .append(getDescriptionOptions(aPhysicalTable.getDescription()))
-                .append(";")
+                .append(");")
                 .append(System.lineSeparator());
         //Rollback for create table
         changeSet.append("--rollback DROP TABLE IF EXISTS ")
@@ -239,6 +247,27 @@ public class LiquibaseChangeSetUtil {
                 .append(System.lineSeparator());
 
         return changeSet.toString();
+    }
+
+    /**
+     * Generates a standalone ALTER TABLE SET OPTIONS statement for the table description.
+     * This is emitted as a separate dedicated changeset so the CREATE TABLE changeset
+     * remains permanently immutable regardless of description content.
+     *
+     * @param aPhysicalTable The PhysicalTable object containing table details.
+     * @param dataSetName    The dataset name where the table resides.
+     * @return A string containing the ALTER TABLE SET OPTIONS statement, or blank if no description.
+     */
+    private static String getTableDescriptionStatement(PhysicalTable aPhysicalTable, String dataSetName) {
+        String descriptionOptions = getDescriptionOptions(aPhysicalTable.getDescription());
+        if (descriptionOptions.isBlank()) {
+            return "";
+        }
+        return "ALTER TABLE " + dataSetName + "." + aPhysicalTable.getName()
+                + " SET" + descriptionOptions + ";" + System.lineSeparator()
+                + "--rollback ALTER TABLE " + dataSetName + "." + aPhysicalTable.getName()
+                + " SET OPTIONS(description='');" + System.lineSeparator()
+                + System.lineSeparator();
     }
 
     /**
