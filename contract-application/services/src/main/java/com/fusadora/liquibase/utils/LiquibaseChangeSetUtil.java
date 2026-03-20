@@ -36,6 +36,13 @@ public class LiquibaseChangeSetUtil {
         return "'" + description.replace("'", "''") + "'";
     }
 
+    private static String getInlineDescriptionOptions(String description) {
+        if (description == null || description.isBlank()) {
+            return "";
+        }
+        return " OPTIONS(description=" + getEscapedDescriptionLiteral(description) + ")";
+    }
+
     /**
      * Generates a Liquibase formatted SQL file for the given PhysicalTable.
      *
@@ -147,7 +154,7 @@ public class LiquibaseChangeSetUtil {
 
             String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
-                nestedDefinitions.add(field.getName() + " " + typeDefinition);
+                nestedDefinitions.add(field.getName() + " " + typeDefinition + getInlineDescriptionOptions(field.getDescription()));
             }
         }
         return nestedDefinitions;
@@ -287,12 +294,11 @@ public class LiquibaseChangeSetUtil {
         return changeSet.toString();
     }
 
-    private static void collectColumnDescriptionStatementsRecursively(List<PhysicalField> fields,
-                                                                     String dataSetName,
-                                                                     String tableName,
-                                                                     String parentPath,
-                                                                     List<String> statements,
-                                                                     List<String> rollbacks) {
+    private static void collectTopLevelColumnDescriptionStatements(List<PhysicalField> fields,
+                                                                   String dataSetName,
+                                                                   String tableName,
+                                                                   List<String> statements,
+                                                                   List<String> rollbacks) {
         if (fields == null || fields.isEmpty()) {
             return;
         }
@@ -302,14 +308,11 @@ public class LiquibaseChangeSetUtil {
                 continue;
             }
 
-            String qualifiedName = parentPath == null ? field.getName() : parentPath + "." + field.getName();
             statements.add(ALTER_TABLE_PREFIX + dataSetName + "." + tableName
-                    + " ALTER COLUMN " + qualifiedName
+                    + " ALTER COLUMN " + field.getName()
                     + SET_OPTIONS_DESCRIPTION_PREFIX + getEscapedDescriptionLiteral(field.getDescription()) + ");");
             rollbacks.add(ROLLBACK_ALTER_TABLE_PREFIX + dataSetName + "." + tableName
-                    + " ALTER COLUMN " + qualifiedName + SET_OPTIONS_DESCRIPTION_PREFIX + EMPTY_DESCRIPTION + ");");
-
-            collectColumnDescriptionStatementsRecursively(field.getNestedFields(), dataSetName, tableName, qualifiedName, statements, rollbacks);
+                    + " ALTER COLUMN " + field.getName() + SET_OPTIONS_DESCRIPTION_PREFIX + EMPTY_DESCRIPTION + ");");
         }
     }
 
@@ -322,7 +325,7 @@ public class LiquibaseChangeSetUtil {
         rollbacks.add(ROLLBACK_ALTER_TABLE_PREFIX + dataSetName + "." + aPhysicalTable.getName()
                 + SET_OPTIONS_DESCRIPTION_PREFIX + EMPTY_DESCRIPTION + ");");
 
-        collectColumnDescriptionStatementsRecursively(aPhysicalTable.getPhysicalFields(), dataSetName, aPhysicalTable.getName(), null, statements, rollbacks);
+        collectTopLevelColumnDescriptionStatements(aPhysicalTable.getPhysicalFields(), dataSetName, aPhysicalTable.getName(), statements, rollbacks);
 
         StringBuilder changeSet = new StringBuilder();
         for (String statement : statements) {
@@ -350,7 +353,7 @@ public class LiquibaseChangeSetUtil {
         }
 
         StringBuilder changeSet = new StringBuilder();
-        changeSet.append("ALTER TABLE ")
+        changeSet.append(ALTER_TABLE_PREFIX)
                 .append(dataSetName)
                 .append(".")
                 .append(aPhysicalTable.getName())
@@ -371,7 +374,7 @@ public class LiquibaseChangeSetUtil {
 
         //Rollback for alter table
         for (String columnDefinition : alterColumnDefinitions) {
-            changeSet.append("--rollback ALTER TABLE ")
+            changeSet.append(ROLLBACK_ALTER_TABLE_PREFIX)
                     .append(dataSetName)
                     .append(".")
                     .append(aPhysicalTable.getName())
