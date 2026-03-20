@@ -239,6 +239,47 @@ class LiquibaseChangeSetUtilTest {
         return table;
     }
 
+    private PhysicalTable createArrayPhysicalTable() {
+        PhysicalField id = new PhysicalField();
+        id.setName("id");
+        id.setType("INT64");
+        id.setChangeSetNumber(1);
+
+        PhysicalField lineItems = new PhysicalField();
+        lineItems.setName("line_items");
+        lineItems.setType("ARRAY");
+        lineItems.setChangeSetNumber(1);
+
+        PhysicalField sku = new PhysicalField();
+        sku.setName("sku");
+        sku.setType("STRING");
+        sku.setChangeSetNumber(1);
+
+        PhysicalField qty = new PhysicalField();
+        qty.setName("qty");
+        qty.setType("INT64");
+        qty.setChangeSetNumber(1);
+
+        lineItems.setNestedFields(List.of(sku, qty));
+
+        PhysicalField tags = new PhysicalField();
+        tags.setName("tags");
+        tags.setType("ARRAY");
+        tags.setChangeSetNumber(2);
+
+        // Unnamed single nested field represents array element type.
+        PhysicalField tagElement = new PhysicalField();
+        tagElement.setType("STRING");
+        tagElement.setChangeSetNumber(2);
+        tags.setNestedFields(List.of(tagElement));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("array_table");
+        table.setPhysicalFields(List.of(id, lineItems, tags));
+        table.setCurrentChangeSetNumber(2);
+        return table;
+    }
+
     @Test
     void testGetLiquibaseChangeSetSql_CreateTable() {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
@@ -276,6 +317,15 @@ class LiquibaseChangeSetUtilTest {
         assertTrue(sql.contains("ALTER TABLE dataset.deep_nested_table"));
         assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS preferences STRUCT<notifications STRUCT<email BOOL>>"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.deep_nested_table DROP COLUMN IF EXISTS preferences;"));
+    }
+
+    @Test
+    void testGetLiquibaseChangeSetSql_ArrayTypes() {
+        String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createArrayPhysicalTable(), "dataset");
+
+        assertTrue(sql.contains("line_items ARRAY<STRUCT<sku STRING, qty INT64>>"));
+        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS tags ARRAY<STRING>"));
+        assertTrue(sql.contains("--rollback ALTER TABLE dataset.array_table DROP COLUMN IF EXISTS tags;"));
     }
 
     @Test

@@ -92,9 +92,43 @@ public class LiquibaseChangeSetUtil {
     }
 
     private static String getTypeOrStructDefinition(PhysicalField field) {
+        if (field == null || field.getType() == null) {
+            return null;
+        }
+
+        if ("ARRAY".equalsIgnoreCase(field.getType())) {
+            return getArrayDefinition(field);
+        }
+
         List<String> nestedDefinitions = getNestedDefinitions(field.getNestedFields());
         if (!nestedDefinitions.isEmpty()) {
             return "STRUCT<" + String.join(", ", nestedDefinitions) + ">";
+        }
+        return field.getType();
+    }
+
+    private static String getArrayDefinition(PhysicalField field) {
+        List<PhysicalField> nestedFields = field.getNestedFields();
+        if (nestedFields == null || nestedFields.isEmpty()) {
+            return field.getType();
+        }
+
+        // Allow primitive array representation with a single unnamed element definition.
+        if (nestedFields.size() == 1) {
+            PhysicalField elementField = nestedFields.get(0);
+            if (elementField != null
+                    && (elementField.getName() == null || elementField.getName().isBlank())
+                    && elementField.getType() != null) {
+                String elementType = getTypeOrStructDefinition(elementField);
+                if (elementType != null) {
+                    return "ARRAY<" + elementType + ">";
+                }
+            }
+        }
+
+        List<String> nestedDefinitions = getNestedDefinitions(nestedFields);
+        if (!nestedDefinitions.isEmpty()) {
+            return "ARRAY<STRUCT<" + String.join(", ", nestedDefinitions) + ">>";
         }
         return field.getType();
     }
