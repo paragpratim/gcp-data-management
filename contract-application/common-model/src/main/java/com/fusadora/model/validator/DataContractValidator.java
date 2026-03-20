@@ -1,6 +1,7 @@
 package com.fusadora.model.validator;
 
 import com.fusadora.model.datacontract.DataContract;
+import com.fusadora.model.datacontract.BigQueryFieldType;
 import com.fusadora.model.datacontract.PhysicalField;
 import com.fusadora.model.datacontract.PhysicalModel;
 import com.fusadora.model.datacontract.PhysicalTable;
@@ -10,6 +11,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -22,6 +24,8 @@ import java.util.Set;
  */
 
 public class DataContractValidator implements ConstraintValidator<ValidDataContract, DataContract> {
+
+    private static final String IN_TABLE = " in table ";
 
     private void validateFieldNamesRecursively(List<PhysicalField> fields,
                                                String tableName,
@@ -38,10 +42,44 @@ public class DataContractValidator implements ConstraintValidator<ValidDataContr
 
             String fName = field.getName();
             if (fName != null && !fieldNames.add(fName)) {
-                violations.add("Duplicate column name: " + fName + " in table " + tableName);
+                violations.add("Duplicate column name: " + fName + IN_TABLE + tableName);
             }
 
+            String fieldPath = (fName == null || fName.isBlank()) ? "<unknown>" : fName;
+            validateTypeAndNestedFieldsRecursively(field, tableName, fieldPath, violations);
+
             validateFieldNamesRecursively(field.getNestedFields(), tableName, fieldNames, violations);
+        }
+    }
+
+    private void validateTypeAndNestedFieldsRecursively(PhysicalField field,
+                                                        String tableName,
+                                                        String fieldPath,
+                                                        List<String> violations) {
+        String type = field.getType();
+        if (!BigQueryFieldType.isSupported(type)) {
+            violations.add("Invalid field type: " + type + " for field " + fieldPath + IN_TABLE + tableName);
+            return;
+        }
+
+        Optional<BigQueryFieldType> bigQueryFieldType = BigQueryFieldType.fromValue(type);
+        if (bigQueryFieldType.isPresent()
+                && (bigQueryFieldType.get() == BigQueryFieldType.STRUCT || bigQueryFieldType.get() == BigQueryFieldType.ARRAY)
+                && (field.getNestedFields() == null || field.getNestedFields().isEmpty())) {
+            violations.add("Field " + fieldPath + IN_TABLE + tableName + " must define nested_fields for type " + bigQueryFieldType.get().name());
+        }
+
+        if (field.getNestedFields() == null || field.getNestedFields().isEmpty()) {
+            return;
+        }
+
+        for (PhysicalField nestedField : field.getNestedFields()) {
+            if (nestedField == null) {
+                continue;
+            }
+            String nestedName = nestedField.getName();
+            String nestedPath = (nestedName == null || nestedName.isBlank()) ? fieldPath + ".<unknown>" : fieldPath + "." + nestedName;
+            validateTypeAndNestedFieldsRecursively(nestedField, tableName, nestedPath, violations);
         }
     }
 
