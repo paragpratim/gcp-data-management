@@ -8,6 +8,13 @@ import org.springframework.data.annotation.Id;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * com.fusadora.model.datacontract.GCPProjects
+ * This class represents the GCP Projects entity in the datastore.
+ *
+ * @author Parag Ghosh
+ * @since 21/03/2026
+ */
 @Entity(name = "gcp_projects")
 public class GCPProjects implements Serializable {
     @Serial
