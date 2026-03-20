@@ -10,10 +10,21 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LiquibaseChangeSetUtilTest {
+
+    private static int countOccurrences(String text, String token) {
+        int count = 0;
+        int index = 0;
+        while ((index = text.indexOf(token, index)) >= 0) {
+            count++;
+            index += token.length();
+        }
+        return count;
+    }
 
     private PhysicalTable createSamplePhysicalTable() {
         PhysicalField field1 = new PhysicalField();
@@ -242,7 +253,7 @@ class LiquibaseChangeSetUtilTest {
         assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS address STRUCT<line1 STRING OPTIONS(description='Address line 1')> OPTIONS(description='Address struct')"));
         assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS country STRUCT<code STRING OPTIONS(description='Country code')> OPTIONS(description='Country struct')"));
         assertTrue(sql.contains("    ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description='City name')"));
-        assertTrue(sql.contains("ALTER TABLE dataset.test_table SET OPTIONS(description='Test table description');"));
+        assertFalse(sql.contains("ALTER TABLE dataset.test_table SET OPTIONS(description='Test table description');"));
         assertTrue(sql.contains(";"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS address;"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.test_table DROP COLUMN IF EXISTS country;"));
@@ -279,7 +290,7 @@ class LiquibaseChangeSetUtilTest {
         assertTrue(sql.contains("--changeset fusadora:sales_order_1_3"));
         assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1"));
         assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS order_line STRUCT<sku STRING OPTIONS(description='Stock keeping unit'), quantity INT64 OPTIONS(description='Quantity ordered'), pricing STRUCT<amount NUMERIC OPTIONS(description='Line amount'), currency STRING OPTIONS(description='Currency code')> OPTIONS(description='Pricing details')> OPTIONS(description='Order line details')"));
-        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1 SET OPTIONS(description='Sales order table');"));
+        assertFalse(sql.contains("ALTER TABLE raw_data.sales_order_1 SET OPTIONS(description='Sales order table');"));
         assertTrue(sql.contains("--rollback ALTER TABLE raw_data.sales_order_1 DROP COLUMN IF EXISTS order_line;"));
     }
 
@@ -334,6 +345,15 @@ class LiquibaseChangeSetUtilTest {
         assertFalse(sql.contains("ADD COLUMN IF NOT EXISTS city STRING OPTIONS(description="));
 
         assertFalse(sql.contains("SET OPTIONS(description="));
+    }
+
+    @Test
+    void testGetLiquibaseChangeSetSql_TableDescriptionIsOnlyInCreateStatement() {
+        String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
+
+        String tableDescriptionInCreate = ") OPTIONS(description='Test table description');";
+        assertEquals(1, countOccurrences(sql, tableDescriptionInCreate));
+        assertFalse(sql.contains("SET OPTIONS(description='Test table description')"));
     }
 
     @Test

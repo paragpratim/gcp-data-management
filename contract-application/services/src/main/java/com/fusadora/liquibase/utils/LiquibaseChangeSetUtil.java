@@ -274,16 +274,6 @@ public class LiquibaseChangeSetUtil {
                 .append(";")
                 .append(System.lineSeparator());
 
-        if (aPhysicalTable.getDescription() != null && !aPhysicalTable.getDescription().isBlank()) {
-            changeSet.append("ALTER TABLE ")
-                    .append(dataSetName)
-                    .append(".")
-                    .append(aPhysicalTable.getName())
-                    .append(" SET")
-                    .append(getDescriptionOptions(aPhysicalTable.getDescription()))
-                    .append(";")
-                    .append(System.lineSeparator());
-        }
 
         //Rollback for alter table
         for (String columnDefinition : alterColumnDefinitions) {
