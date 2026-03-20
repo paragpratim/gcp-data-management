@@ -80,26 +80,26 @@ public class LiquibaseChangeSetUtil {
         return changeSet.toString();
     }
 
-    private static String getTypeOrStructDefinition(PhysicalField field, int changeSetNumber) {
-        List<String> nestedDefinitions = getNestedDefinitionsForChangeSet(field.getNestedFields(), changeSetNumber);
+    private static String getTypeOrStructDefinition(PhysicalField field) {
+        List<String> nestedDefinitions = getNestedDefinitions(field.getNestedFields());
         if (!nestedDefinitions.isEmpty()) {
             return "STRUCT<" + String.join(", ", nestedDefinitions) + ">";
         }
         return field.getType();
     }
 
-    private static List<String> getNestedDefinitionsForChangeSet(List<PhysicalField> fields, int changeSetNumber) {
+    private static List<String> getNestedDefinitions(List<PhysicalField> fields) {
         List<String> nestedDefinitions = new ArrayList<>();
         if (fields == null || fields.isEmpty()) {
             return nestedDefinitions;
         }
 
         for (PhysicalField field : fields) {
-            if (field == null || field.getName() == null || field.getChangeSetNumber() != changeSetNumber) {
+            if (field == null || field.getName() == null) {
                 continue;
             }
 
-            String typeDefinition = getTypeOrStructDefinition(field, changeSetNumber);
+            String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
                 nestedDefinitions.add(field.getName() + " " + typeDefinition);
             }
@@ -118,7 +118,7 @@ public class LiquibaseChangeSetUtil {
                 continue;
             }
 
-            String typeDefinition = getTypeOrStructDefinition(field, changeSetNumber);
+            String typeDefinition = getTypeOrStructDefinition(field);
             if (typeDefinition != null) {
                 columnDefinitions.add(field.getName() + " " + typeDefinition);
             }
@@ -143,7 +143,7 @@ public class LiquibaseChangeSetUtil {
             String qualifiedName = parentPath == null ? field.getName() : parentPath + "." + field.getName();
             boolean addedInThisChangeSet = false;
             if (!parentAddedInChangeSet && field.getChangeSetNumber() == changeSetNumber) {
-                String typeDefinition = getTypeOrStructDefinition(field, changeSetNumber);
+                String typeDefinition = getTypeOrStructDefinition(field);
                 if (typeDefinition != null) {
                     alterColumnDefinitions.add(qualifiedName + " " + typeDefinition);
                     addedInThisChangeSet = true;

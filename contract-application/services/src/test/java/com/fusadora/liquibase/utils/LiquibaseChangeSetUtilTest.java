@@ -164,6 +164,53 @@ class LiquibaseChangeSetUtilTest {
         return table;
     }
 
+    private PhysicalTable createStructWithMixedNestedChangeSetTable() {
+        PhysicalField id = new PhysicalField();
+        id.setName("id");
+        id.setType("INT64");
+        id.setChangeSetNumber(1);
+
+        PhysicalField orderLine = new PhysicalField();
+        orderLine.setName("order_line");
+        orderLine.setType("STRUCT");
+        orderLine.setChangeSetNumber(3);
+
+        PhysicalField sku = new PhysicalField();
+        sku.setName("sku");
+        sku.setType("STRING");
+        sku.setChangeSetNumber(1);
+
+        PhysicalField quantity = new PhysicalField();
+        quantity.setName("quantity");
+        quantity.setType("INT64");
+        quantity.setChangeSetNumber(1);
+
+        PhysicalField pricing = new PhysicalField();
+        pricing.setName("pricing");
+        pricing.setType("STRUCT");
+        pricing.setChangeSetNumber(1);
+
+        PhysicalField amount = new PhysicalField();
+        amount.setName("amount");
+        amount.setType("NUMERIC");
+        amount.setChangeSetNumber(1);
+
+        PhysicalField currency = new PhysicalField();
+        currency.setName("currency");
+        currency.setType("STRING");
+        currency.setChangeSetNumber(1);
+
+        pricing.setNestedFields(List.of(amount, currency));
+        orderLine.setNestedFields(List.of(sku, quantity, pricing));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("sales_order_1");
+        table.setPhysicalFields(Arrays.asList(id, orderLine));
+        table.setCurrentChangeSetNumber(3);
+
+        return table;
+    }
+
     @Test
     void testGetLiquibaseChangeSetSql_CreateTable() {
         String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createSamplePhysicalTable(), "dataset");
@@ -204,6 +251,16 @@ class LiquibaseChangeSetUtilTest {
         assertTrue(sql.contains("ALTER TABLE dataset.multi_field_struct_table"));
         assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS address STRUCT<line1 STRING, line2 STRING>"));
         assertTrue(sql.contains("--rollback ALTER TABLE dataset.multi_field_struct_table DROP COLUMN IF EXISTS address;"));
+    }
+
+    @Test
+    void testGetLiquibaseChangeSetSql_AlterStructIncludesNestedFieldsWithMixedChangeSets() {
+        String sql = LiquibaseChangeSetUtil.getLiquibaseChangeSetSql(createStructWithMixedNestedChangeSetTable(), "raw_data");
+
+        assertTrue(sql.contains("--changeset fusadora:sales_order_1_3"));
+        assertTrue(sql.contains("ALTER TABLE raw_data.sales_order_1"));
+        assertTrue(sql.contains("ADD COLUMN IF NOT EXISTS order_line STRUCT<sku STRING, quantity INT64, pricing STRUCT<amount NUMERIC, currency STRING>>"));
+        assertTrue(sql.contains("--rollback ALTER TABLE raw_data.sales_order_1 DROP COLUMN IF EXISTS order_line;"));
     }
 
     @Test
