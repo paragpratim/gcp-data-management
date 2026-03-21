@@ -7,6 +7,13 @@ import com.google.cloud.spring.data.datastore.core.mapping.Field;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * com.fusadora.model.datacontract.BigQueryDataset
+ * <p>Description: Model for BigQuery Dataset </p>
+ *
+ * @author Parag Ghosh
+ * @since 20/03/2026
+ */
 
 @Entity(name = "bigquery_dataset")
 public class BigQueryDataset implements Serializable {

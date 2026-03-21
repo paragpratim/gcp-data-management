@@ -18,6 +18,29 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 class DataContractValidatorTest {
 
+    private static PhysicalField primitiveField(String name, String type) {
+        PhysicalField field = new PhysicalField();
+        field.setName(name);
+        field.setType(type);
+        return field;
+    }
+
+    private static PhysicalField structField(String name, List<PhysicalField> nestedFields) {
+        PhysicalField field = new PhysicalField();
+        field.setName(name);
+        field.setType("STRUCT");
+        field.setNestedFields(nestedFields);
+        return field;
+    }
+
+    private static PhysicalField arrayField(List<PhysicalField> nestedFields) {
+        PhysicalField field = new PhysicalField();
+        field.setName("items");
+        field.setType("ARRAY");
+        field.setNestedFields(nestedFields);
+        return field;
+    }
+
     @Test
     void isValid_returnsTrue_whenDataContractIsNull() {
         DataContractValidator validator = new DataContractValidator();
@@ -60,10 +83,8 @@ class DataContractValidatorTest {
     void isValid_returnsFalse_whenDuplicateColumnNamesExistInTable() {
         DataContractValidator validator = new DataContractValidator();
         DataContract contract = new DataContract();
-        PhysicalField column1 = new PhysicalField();
-        column1.setName("Column1");
-        PhysicalField column2 = new PhysicalField();
-        column2.setName("Column1");
+        PhysicalField column1 = primitiveField("Column1", "STRING");
+        PhysicalField column2 = primitiveField("Column1", "STRING");
         PhysicalTable table = new PhysicalTable();
         table.setName("Table1");
         table.setPhysicalFields(List.of(column1, column2));
@@ -75,13 +96,35 @@ class DataContractValidatorTest {
     }
 
     @Test
+    void isValid_returnsFalse_whenDuplicateNestedColumnNamesExistInTable() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField nested1 = primitiveField("NestedColumn1", "STRING");
+        PhysicalField nested2 = primitiveField("NestedColumn1", "STRING");
+
+        PhysicalField parent1 = structField("ParentColumn1", List.of(nested1));
+        PhysicalField parent2 = structField("ParentColumn2", List.of(nested2));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(parent1, parent2));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
     void isValid_returnsTrue_whenAllTableAndColumnNamesAreUnique() {
         DataContractValidator validator = new DataContractValidator();
         DataContract contract = new DataContract();
-        PhysicalField column1 = new PhysicalField();
-        column1.setName("Column1");
-        PhysicalField column2 = new PhysicalField();
-        column2.setName("Column2");
+        PhysicalField column1 = primitiveField("Column1", "STRING");
+        PhysicalField column2 = primitiveField("Column2", "INT64");
         PhysicalTable table1 = new PhysicalTable();
         table1.setName("Table1");
         table1.setPhysicalFields(List.of(column1));
@@ -90,6 +133,134 @@ class DataContractValidatorTest {
         table2.setPhysicalFields(List.of(column2));
         contract.setPhysicalModel(new PhysicalModel());
         contract.getPhysicalModel().setPhysicalTables(List.of(table1, table2));
+        assertTrue(validator.isValid(contract, null));
+    }
+
+    @Test
+    void isValid_returnsTrue_whenAllNestedColumnNamesAreUnique() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField nested1 = primitiveField("NestedColumn1", "STRING");
+        PhysicalField nested2 = primitiveField("NestedColumn2", "STRING");
+
+        PhysicalField parent1 = structField("ParentColumn1", List.of(nested1));
+        PhysicalField parent2 = structField("ParentColumn2", List.of(nested2));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(parent1, parent2));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        assertTrue(validator.isValid(contract, null));
+    }
+
+    @Test
+    void isValid_returnsFalse_whenDuplicateColumnNamesExistDeepInNestedHierarchy() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField deepNested1 = primitiveField("code", "STRING");
+        PhysicalField deepNested2 = primitiveField("code", "INT64");
+
+        PhysicalField levelTwoParent1 = structField("region", List.of(deepNested1));
+        PhysicalField levelTwoParent2 = structField("territory", List.of(deepNested2));
+
+        PhysicalField levelOneParent1 = structField("sales", List.of(levelTwoParent1));
+        PhysicalField levelOneParent2 = structField("support", List.of(levelTwoParent2));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(levelOneParent1, levelOneParent2));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
+    void isValid_returnsFalse_whenFieldTypeIsNotBigQuerySupported() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField invalid = primitiveField("status", "VARCHAR");
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(invalid));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
+    void isValid_returnsFalse_whenStructFieldHasNoNestedFields() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField struct = structField("address", List.of());
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(struct));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
+    void isValid_returnsFalse_whenArrayFieldHasNoNestedFields() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField arrayField = new PhysicalField();
+        arrayField.setName("items");
+        arrayField.setType("ARRAY");
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(arrayField));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
+        ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
+        when(context.buildConstraintViolationWithTemplate(anyString())).thenReturn(mock(ConstraintValidatorContext.ConstraintViolationBuilder.class));
+
+        assertFalse(validator.isValid(contract, context));
+    }
+
+    @Test
+    void isValid_returnsTrue_whenDeeplyNestedStructAndArrayFieldsAreValid() {
+        DataContractValidator validator = new DataContractValidator();
+        DataContract contract = new DataContract();
+
+        PhysicalField amount = primitiveField("amount", "NUMERIC");
+        PhysicalField sku = primitiveField("sku", "STRING");
+        PhysicalField metadata = structField("metadata", List.of(amount, sku));
+        PhysicalField items = arrayField(List.of(metadata));
+
+        PhysicalTable table = new PhysicalTable();
+        table.setName("Table1");
+        table.setPhysicalFields(List.of(items));
+
+        contract.setPhysicalModel(new PhysicalModel());
+        contract.getPhysicalModel().setPhysicalTables(List.of(table));
+
         assertTrue(validator.isValid(contract, null));
     }
 }

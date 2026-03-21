@@ -2,7 +2,7 @@ package com.fusadora.liquibase.services;
 
 import com.fusadora.liquibase.repository.LiquibaseRepository;
 import com.fusadora.liquibase.utils.LiquibaseChangeLogUtil;
-import com.fusadora.liquibase.utils.LiquibaseChangeSetUtil;
+import com.fusadora.liquibase.utils.changeset.LiquibaseChangeSetUtil;
 import com.fusadora.liquibase.utils.LiquibaseCommandUtil;
 import com.fusadora.model.datacontract.BigQueryDataset;
 import com.fusadora.model.datacontract.DataContract;

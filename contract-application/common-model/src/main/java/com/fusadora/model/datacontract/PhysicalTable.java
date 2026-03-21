@@ -8,6 +8,13 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * com.fusadora.model.datacontract.PhysicalTable
+ * This class represents a physical table in the Physical Model.
+ *
+ * @author Parag Ghosh
+ * @since 21/03/2026
+ */
 @Entity(name = "physical_table")
 public class PhysicalTable implements Serializable {
     @Serial
