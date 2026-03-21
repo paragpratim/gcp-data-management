@@ -16,6 +16,7 @@ import java.io.Serializable;
  * This class represents a data contract entity for managing data products.
  * It includes validation annotations to ensure that required fields are not blank and that nested objects are valid.
  * The class is mapped to a Datastore entity named "data_contract".
+ *
  * @author Parag Ghosh
  * @since 16/11/2025
  */

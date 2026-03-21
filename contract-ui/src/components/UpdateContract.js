@@ -224,11 +224,8 @@ export default function UpdateContract() {
       });
     } else if (name.startsWith("physical_fields.")) {
       const [, field, tIdx, fIdx] = name.split(".");
-      // Prevent editing existing physical fields
-      if (contract.physical_model.physical_tables[tIdx].physical_fields[fIdx]._existing === true) {
-        console.log("Cannot edit existing field");
-        return;
-      }
+      // During update, only field_description is editable in Physical Fields.
+      if (field !== "field_description") return;
       const tables = [...contract.physical_model.physical_tables];
       tables[tIdx].physical_fields[fIdx][field] = value;
       setContract({
@@ -236,13 +233,7 @@ export default function UpdateContract() {
         physical_model: { physical_tables: tables }
       });
     } else if (name.startsWith("nested_fields.")) {
-      const [, field, tIdx, fIdx, nIdx] = name.split(".");
-      const tables = [...contract.physical_model.physical_tables];
-      tables[tIdx].physical_fields[fIdx].nested_fields[nIdx][field] = value;
-      setContract({
-        ...contract,
-        physical_model: { physical_tables: tables }
-      });
+      return;
     } else {
       setContract({ ...contract, [name]: value });
     }
@@ -451,7 +442,10 @@ export default function UpdateContract() {
                 </div>
                 
                 <h4>Physical Fields</h4>
-                <button type="button" onClick={() => addField(tIdx)}>Add Field</button>
+                <p style={{ margin: "6px 0 10px", color: "#666", fontSize: "13px" }}>
+                  During update, all field properties are read-only except Field Description.
+                </p>
+                <button type="button" onClick={() => addField(tIdx)} disabled={true} style={{ background: "#e0e0e0", color: "#888", cursor: "not-allowed" }}>Add Field</button>
                 <table className="physical-fields-table" style={{tableLayout: "fixed", width: "100%"}}>
                   <thead>
                     <tr>
@@ -473,8 +467,8 @@ export default function UpdateContract() {
                             value={field.field_name}
                             onChange={handleChange}
                             required
-                            disabled={field._existing}
-                            style={field._existing ? { background: "#f0f0f0", color: "#888" } : {}}
+                            disabled={true}
+                            style={{ background: "#f0f0f0", color: "#888" }}
                           />
                         </td>
                         <td>
@@ -483,8 +477,8 @@ export default function UpdateContract() {
                             value={field.field_type}
                             onChange={handleChange}
                             required
-                            disabled={field._existing}
-                            style={field._existing ? { background: "#f0f0f0", color: "#888" } : {}}
+                            disabled={true}
+                            style={{ background: "#f0f0f0", color: "#888" }}
                           >
                             <option value="">Select Type</option>
                             <option value="STRING">STRING</option>
@@ -510,8 +504,6 @@ export default function UpdateContract() {
                             placeholder="Field Description"
                             value={field.field_description}
                             onChange={handleChange}
-                            disabled={field._existing}
-                            style={field._existing ? { background: "#f0f0f0", color: "#888" } : {}}
                           />
                         </td>
                         <td>
@@ -520,7 +512,8 @@ export default function UpdateContract() {
                             className="table-action-btn"
                             title="Add Nested Field"
                             onClick={() => addNestedField(tIdx, fIdx)}
-                            disabled={field._existing}
+                            disabled={true}
+                            style={{ background: "#e0e0e0", color: "#aaa", cursor: "not-allowed" }}
                           >
                             +
                           </button>
@@ -533,16 +526,16 @@ export default function UpdateContract() {
                                 value={nested.field_name}
                                 onChange={handleChange}
                                 required
-                                disabled={field._existing}
-                                style={field._existing ? { background: "#f0f0f0", color: "#888" } : {}}
+                                disabled={true}
+                                style={{ background: "#f0f0f0", color: "#888" }}
                               />
                               <select
                                 name={`nested_fields.field_type.${tIdx}.${fIdx}.${nIdx}`}
                                 value={nested.field_type}
                                 onChange={handleChange}
                                 required
-                                disabled={field._existing}
-                                style={field._existing ? { background: "#f0f0f0", color: "#888" } : {}}
+                                disabled={true}
+                                style={{ background: "#f0f0f0", color: "#888" }}
                               >
                                 <option value="">Select Type</option>
                                 <option value="STRING">STRING</option>
@@ -566,16 +559,16 @@ export default function UpdateContract() {
                                 placeholder="Description"
                                 value={nested.field_description}
                                 onChange={handleChange}
-                                disabled={field._existing}
-                                style={field._existing ? { background: "#f0f0f0", color: "#888" } : {}}
+                                disabled={true}
+                                style={{ background: "#f0f0f0", color: "#888" }}
                               />
                               <button
                                 type="button"
                                 className="table-action-btn"
                                 title="Remove Nested Field"
                                 onClick={() => removeNestedField(tIdx, fIdx, nIdx)}
-                                disabled={field._existing}
-                                style={field._existing ? { background: "#e0e0e0", color: "#aaa", cursor: "not-allowed" } : {}}
+                                disabled={true}
+                                style={{ background: "#e0e0e0", color: "#aaa", cursor: "not-allowed" }}
                               >
                                 −
                               </button>
@@ -588,7 +581,8 @@ export default function UpdateContract() {
                             className="table-action-btn"
                             title="Remove Field"
                             onClick={() => removeField(tIdx, fIdx)}
-                            disabled={field._existing}
+                            disabled={true}
+                            style={{ background: "#e0e0e0", color: "#aaa", cursor: "not-allowed" }}
                           >
                             −
                           </button>

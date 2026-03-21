@@ -8,6 +8,13 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * com.fusadora.model.datacontract.PhysicalModel
+ * This class represents the physical model of a data contract.
+ *
+ * @author Parag Ghosh
+ * @since 21/03/2026
+ */
 @Entity(name = "physical_model")
 public class PhysicalModel implements Serializable {
 

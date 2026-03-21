@@ -8,6 +8,13 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * com.fusadora.model.datacontract.PhysicalField
+ * This class represents a physical field in a Table.
+ *
+ * @author Parag Ghosh
+ * @since 21/03/2026
+ */
 @Entity(name = "physical_field")
 public class PhysicalField implements Serializable {
     @Serial
