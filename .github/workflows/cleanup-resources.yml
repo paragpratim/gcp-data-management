@@ -1,0 +1,97 @@
+name: Cleanup_Data_Management_Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DESTROY to confirm this cleanup'
+        required: true
+        default: ''
+        type: string
+
+env:
+  PROJECT_ID: ${{ secrets.DATA_MANAGEMENT_PROJECT_ID }}
+  REGION: europe-west4
+  SERVICE_NAME: contract-app
+  TERRAFORM_WORKFLOW_NAME: Deploy_Terraform_Infrastructure
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: write
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Validate cleanup confirmation
+        if: github.event.inputs.confirm != 'DESTROY'
+        run: |
+          echo "Cleanup was not confirmed. Type DESTROY in the workflow input to continue."
+          exit 1
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/${{ secrets.DEPLOYMENT_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ secrets.WIF_POOL_NAME }}/providers/${{ secrets.WIF_PROVIDER_NAME }}'
+          service_account: ${{ secrets.DEPLOYMENT_SVC }}
+          audience: ${{ secrets.WIF_AUDIENCE }}
+          project_id: ${{ env.PROJECT_ID }}
+          create_credentials_file: true
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Delete Cloud Run service
+        run: |
+          set -e
+          echo "Deleting Cloud Run service: ${SERVICE_NAME}"
+          gcloud run services delete "${SERVICE_NAME}" \
+            --region="${REGION}" \
+            --quiet \
+            --platform=managed || true
+
+      - name: Check Cloud Run serverless reservation status
+        id: reservation_check
+        run: |
+          set +e
+          RESERVATION=$(gcloud compute addresses list \
+            --filter="name~'serverless-ipv4-cloudrun' AND region:(${REGION})" \
+            --format="value(name)" 2>/dev/null)
+
+          if [ -n "$RESERVATION" ]; then
+            echo "reservation_present=true" >> "$GITHUB_OUTPUT"
+            echo "Cloud Run serverless reservation still exists:"
+            echo "$RESERVATION"
+            echo "Retry Terraform destroy in 2 hours after Google releases the serverless IPv4 reservation."
+            exit 0
+          fi
+
+          echo "reservation_present=false" >> "$GITHUB_OUTPUT"
+          echo "No Cloud Run serverless reservation remains. Terraform destroy can proceed."
+
+      - name: Trigger Terraform destroy workflow
+        if: steps.reservation_check.outputs.reservation_present == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          echo "Triggering Terraform destroy for project: ${PROJECT_ID}"
+          gh workflow run "${TERRAFORM_WORKFLOW_NAME}" \
+            --repo "${GH_REPO}" \
+            -f action=destroy
+
+      - name: Cleanup summary
+        run: |
+          echo "## Cleanup Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ Deleted Cloud Run service: ${SERVICE_NAME}" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ steps.reservation_check.outputs.reservation_present }}" = "true" ]; then
+            echo "⚠️ Cloud Run serverless reservation still exists. Please retry Terraform destroy in 2 hours." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "✅ No Cloud Run serverless reservation remains. Terraform destroy workflow was triggered." >> "$GITHUB_STEP_SUMMARY"
+          fi
