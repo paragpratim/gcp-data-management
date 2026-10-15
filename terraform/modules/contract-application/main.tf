@@ -49,8 +49,8 @@ resource "google_artifact_registry_repository" "data_management" {
 
 # Create GCS bucket for Liquibase logs
 resource "google_storage_bucket" "liquibase_log" {
-  name     = "liquibase-log-${var.project_id}"
-  location = var.region
+  name          = "liquibase-log-${var.project_id}"
+  location      = var.region
   force_destroy = true
 
   versioning {
